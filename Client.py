@@ -7,7 +7,7 @@ class User:
         self._index = 0
 
         self.user_list = []
-        self.each_user = {'name': self.name, 'password': self.__password, 'privilege': self.privilege}
+        self.each_user = {'name': self.name, 'password': self.__password, 'privilege': self.privilege} # folder=[]
         self.user_list.append(self.each_user)
 
     def change_folder(self, name):
@@ -26,6 +26,7 @@ class User:
         pass
 
     def register(self, username, password, privileges):
+        
         pass
 
     def login(self, username, password):
