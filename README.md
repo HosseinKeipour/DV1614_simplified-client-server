@@ -16,13 +16,20 @@ File Structure
 A sample directory structure is provided with this assignment but is not required for use. Note that this structure is created with two users in mind, one admin and one user. Service requests are never to be allowed to traverse outside of a given server structure. The structure can be found here.
 
 Root
-|---Admin
-       |---top_secret_data
-              |---pictures_of_cats   
-       |---not_so_secret_data
-|---User
-       |---pictures_of_dogs
-       |---py_code
+       
+       |---Admin
+
+              |---top_secret_data
+
+                     |---pictures_of_cats   
+
+              |---not_so_secret_data
+
+       |---User
+
+              |---pictures_of_dogs
+
+              |---py_code
 
 Registered users, folders, files, and other implementation data must be saved between sessions! Users created during one session must be usable the next time the server is started, and all folders, files, and data are to be properly accessible.
 
