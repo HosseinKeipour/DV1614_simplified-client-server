@@ -37,6 +37,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 # break
                 if username_check(name, name_list) == False:
                     name_list.append(name)
+                    
                     break
                 writer.write('\n\rError: The username has been selected'.encode(encoding='UTF-8'))
 
