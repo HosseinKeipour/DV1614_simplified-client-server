@@ -97,40 +97,40 @@ def username_check(name, name_list):
             return True
     return False
 
-# async def register_client():
-#     while True:
-#         writer.write('\n\rPlease enter your username:'.encode(encoding='UTF-8'))
-#         data = await reader.readline()
-#         # Transfer format is bytes, decode() makes it a string
-#         name = data.decode().strip()
+async def register_client(reader, writer):
+    while True:
+        writer.write('\n\rPlease enter your username:'.encode(encoding='UTF-8'))
+        data = await reader.readline()
+        # Transfer format is bytes, decode() makes it a string
+        name = data.decode().strip()
             
-#         if username_check(name, name_list) == False:
-#             name_list.append(name)
-#             break
-#             writer.write('\n\rError: The username has been selected'.encode(encoding='UTF-8'))
+        if username_check(name, name_list) == False:
+            name_list.append(name)
+            break
+            writer.write('\n\rError: The username has been selected'.encode(encoding='UTF-8'))
 
                         
                 
-#     while True:
-#         writer.write('\n\rPlease enter your password:'.encode(encoding='UTF-8'))
-#         data = await reader.readline()
-#         # Transfer format is bytes, decode() makes it a string
-#         password = data.decode().strip()
+    while True:
+        writer.write('\n\rPlease enter your password:'.encode(encoding='UTF-8'))
+        data = await reader.readline()
+        # Transfer format is bytes, decode() makes it a string
+        password = data.decode().strip()
         
-#         if password != "":
-#             break
-#         else:
-#             writer.write('\n\rError:The password pattern is incorrect.'.encode(encoding='UTF-8'))
+        if password != "":
+            break
+        else:
+            writer.write('\n\rError:The password pattern is incorrect.'.encode(encoding='UTF-8'))
 
-#     while True:
-#         writer.write('\n\rPlease define your privilege (user/admin):'.encode(encoding='UTF-8'))
-#         data = await reader.readline()
-#         # Transfer format is bytes, decode() makes it a string
-#         privilege = data.decode().strip()                    
-#         if privilege == "user" or privilege == "admin":
-#             break
-#         else:
-#             writer.write('\n\rError:The selected privilge is incorrect.'.encode(encoding='UTF-8'))
+    while True:
+        writer.write('\n\rPlease define your privilege (user/admin):'.encode(encoding='UTF-8'))
+        data = await reader.readline()
+        # Transfer format is bytes, decode() makes it a string
+        privilege = data.decode().strip()                    
+        if privilege == "user" or privilege == "admin":
+            break
+        else:
+            writer.write('\n\rError:The selected privilge is incorrect.'.encode(encoding='UTF-8'))
 
 
 asyncio.run(main())
