@@ -24,7 +24,8 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
         if flag == False:
             writer.write('\n\rYou are conected to Pytonista Server'.encode(encoding='UTF-8'))
-            writer.write('\n\rEnter S to Sign in or R to Register(S/R):'.encode(encoding='UTF-8'))
+            writer.write('\n\rlogin Command: login <username> <password>\n\rRegister Command: register <username> <password> <privileges>\n\r'.encode(encoding='UTF-8'))
+            writer.write('>>'.encode(encoding='UTF-8'))
             flag = True
         
         data = await reader.readline()
@@ -73,7 +74,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 os.mkdir(path)
                 writer.write('\n\rDirectory "%s" created'.encode(encoding='UTF-8'))                         
 
-            writer.write('\n\rR Username:\n\r>>'.encode(encoding='UTF-8'))
             await writer.drain()
 
             with open('root/Server/client-info.json', 'w') as file:
