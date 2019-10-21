@@ -1,11 +1,13 @@
 import asyncio
 import random
-from Client import User
+from service import User
 import os
 import json
 name_list = [""]   # report3- we should define some unacceptable or restrict chararcter
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
 signedin = []
+created_folder = {}
+
 
 async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     path = os.getcwd()
@@ -24,15 +26,15 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
         if flag == False:
             writer.write('\n\rYou are conected to Pytonista Server'.encode(encoding='UTF-8'))
-            writer.write('\n\rlogin Command: login <username> <password>\n\rRegister Command: register <username> <password> <privileges>\n\r'.encode(encoding='UTF-8'))
+            writer.write('\n\rPlease select login or register (login/register)'.encode(encoding='UTF-8'))
             writer.write('>>'.encode(encoding='UTF-8'))
             flag = True
         
         data = await reader.readline()
 
-        message = data.decode().strip()             # Transfer format is bytes, decode() makes it a string
+        message = data.decode().strip()             
 
-        if message == 'R':
+        if message == 'register':
             while True:
                 writer.write('\n\rPlease enter your username:'.encode(encoding='UTF-8'))
                 data = await reader.readline()
@@ -63,24 +65,27 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 else:
                     writer.write('\n\rError:The selected privilge is incorrect.'.encode(encoding='UTF-8'))
 
-            # client = User(name, password, privilege)  # report3-folder is created
             if privilege == "user":
                 path = f"root/user/{name}"
                 os.mkdir(path)
-                writer.write('\n\rDirectory "%s" created'.encode(encoding='UTF-8'))
                 
             elif privilege == "admin":
                 path = f"root/admin/{name}"
                 os.mkdir(path)
-                writer.write('\n\rDirectory "%s" created'.encode(encoding='UTF-8'))                         
-
+               
             await writer.drain()
 
             with open('root/Server/client-info.json', 'w') as file:
                 json.dump(registered, file)
+            
+            created_folder[name] = []
+            created_folder[name].append(name)
+            with open('root/Server/created_folder.json', 'w') as file:
+                json.dump(created_folder, file)
 
-        elif message == 'S':
-            while True:#S
+
+        elif message == 'login':
+            while True:
                 writer.write('\n\rPlease enter your username:'.encode(encoding='UTF-8'))
                 data = await reader.readline()
                 name = data.decode().strip()
@@ -92,45 +97,56 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 else:
                     writer.write('\n\rError: This username is not exist. Please try again.'.encode(encoding='UTF-8'))
                 
-            while True:#S
+            while True:
                 writer.write('\n\rPlease enter your password:'.encode(encoding='UTF-8'))
                 data = await reader.readline()
                 password = data.decode().strip()
 
                 if password == registered['client_password'][index]:
                     writer.write(name.encode(encoding='UTF-8'))
-                    writer.write('>>'.encode(encoding='UTF-8'))
                     with open('root/Server/signed-info.json', 'w') as file:
                         json.dump(signedin, file)
                     break
                 else:
                     writer.write('\n\rError:The password is incorrect. Please try again.'.encode(encoding='UTF-8'))
+                    
+            index = registered['client_name'].index(name)
+            privilege = registered['client_privilege'][index]
+            client = User(name, password, privilege)
 
-            # print(f'{name, password, privilege}\n')
-            
+        elif message == 'commands':
+            writer.write('\n\rmkdir--------create a new folder'.encode(encoding='UTF-8'))
+            writer.write('\n\rcd-----------change folder'.encode(encoding='UTF-8'))
+            writer.write('\n\rls-----------list directory contents'.encode(encoding='UTF-8'))
+            writer.write('\n\rreadfile-----read data from the file'.encode(encoding='UTF-8'))
+            writer.write('\n\rwritefile----write the data to the end of the file'.encode(encoding='UTF-8'))
+            writer.write('\n\rlogin--------log in the user'.encode(encoding='UTF-8'))
+            writer.write('\n\rregister-----register a new user'.encode(encoding='UTF-8'))
+            writer.write('\n\rdel----------delete a user from the server'.encode(encoding='UTF-8'))
+            writer.write('\n\rquit---------log out the user, close the connection, close the application'.encode(encoding='UTF-8'))
+            writer.write('\n\rcommands-----print information about all available commands'.encode(encoding='UTF-8'))
 
-            # client = User(name, password, privilege)  # report3-folder is created
-            # if privilege == "user":
-            #     path = f"root/user/{name}"
-            #     os.mkdir(path)
-            #     writer.write('\n\rDirectory "%s" created'.encode(encoding='UTF-8'))
+        elif message == 'mkdir':
+            if username_check(name, signedin):
                 
-            # elif privilege == "admin":
-            #     path = f"root/admin/{name}"
-            #     os.mkdir(path)
-            #     writer.write('\n\rDirectory "%s" created'.encode(encoding='UTF-8'))                         
+                writer.write('\n\rPlease enter folder name:'.encode(encoding='UTF-8'))
+                data = await reader.readline()
+                folder = data.decode().strip() 
+                client.create_folder(name, privilege, folder, reader, writer)
+                # path = f"root/user/{name}/()" 
+                # os.mkdir(path)
 
-            # writer.write('\n\rR Username:\n\r>>'.encode(encoding='UTF-8'))
-            # await writer.drain() 
-
-
-        if message == 'quit':
+        elif message == 'quit':
             signedin.remove(name)
             with open('root/Server/signed-info.json', 'w') as file:
                 json.dump(signedin, file)
             close_msg = f'{addr!r} wants to close the connection.'
             print(close_msg)
             break
+        else:
+            writer.write('\n\rThe implemented command is wrong.Please type "commands"'.encode(encoding='UTF-8'))
+
+        writer.write('>>'.encode(encoding='UTF-8'))
     writer.close()
 
 async def main():
