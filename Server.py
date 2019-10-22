@@ -3,6 +3,7 @@ import random
 from service import User
 import os
 import json
+
 name_list = [""]   # report3- we should define some unacceptable or restrict chararcter
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
 signedin = []
@@ -78,10 +79,10 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             with open('root/Server/client-info.json', 'w') as file:
                 json.dump(registered, file)
             
-            created_folder[name] = []
-            created_folder[name].append(name)
-            with open('root/Server/created_folder.json', 'w') as file:
-                json.dump(created_folder, file)
+            # created_folder[name] = []
+            # created_folder[name].append(name)
+            # with open('root/Server/created_folder.json', 'w') as file:
+            #     json.dump(created_folder, file)
 
 
         elif message == 'login':
@@ -114,6 +115,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             privilege = registered['client_privilege'][index]
             client = User(name, password, privilege)
 
+
         elif message == 'commands':
             writer.write('\n\rmkdir--------create a new folder'.encode(encoding='UTF-8'))
             writer.write('\n\rcd-----------change folder'.encode(encoding='UTF-8'))
@@ -126,16 +128,29 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             writer.write('\n\rquit---------log out the user, close the connection, close the application'.encode(encoding='UTF-8'))
             writer.write('\n\rcommands-----print information about all available commands'.encode(encoding='UTF-8'))
 
+        
         elif message == 'mkdir':
             if username_check(name, signedin):
-                
                 writer.write('\n\rPlease enter folder name:'.encode(encoding='UTF-8'))
                 data = await reader.readline()
                 folder = data.decode().strip() 
                 client.create_folder(name, privilege, folder, reader, writer)
-                # path = f"root/user/{name}/()" 
-                # os.mkdir(path)
 
+        elif message == 'cd':
+            if username_check(name, signedin):
+                writer.write('\n\rPlease enter folder name:'.encode(encoding='UTF-8'))
+                data = await reader.readline()
+                folder = data.decode().strip() 
+                client.change_folder(name, privilege, folder, reader, writer)
+
+        elif message == 'cd ..':
+            if username_check(name, signedin):
+                client.back_folder(name, privilege, folder, reader, writer)
+
+        elif message == 'ls':
+            if username_check(name, signedin):
+                client.print_list(name, reader, writer)
+                
         elif message == 'quit':
             signedin.remove(name)
             with open('root/Server/signed-info.json', 'w') as file:
@@ -199,3 +214,4 @@ def username_check(name1, name2):
 
 
 asyncio.run(main())
+
