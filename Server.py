@@ -104,7 +104,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 password = data.decode().strip()
 
                 if password == registered['client_password'][index]:
-                    writer.write(name.encode(encoding='UTF-8'))
+                    # writer.write(name.encode(encoding='UTF-8'))
                     with open('root/Server/signed-info.json', 'w') as file:
                         json.dump(signedin, file)
                     break
@@ -128,7 +128,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             writer.write('\n\rquit---------log out the user, close the connection, close the application'.encode(encoding='UTF-8'))
             writer.write('\n\rcommands-----print information about all available commands'.encode(encoding='UTF-8'))
 
-        
         elif message == 'mkdir':
             if username_check(name, signedin):
                 writer.write('\n\rPlease enter folder name:'.encode(encoding='UTF-8'))
@@ -161,7 +160,15 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 data = await reader.readline()
                 user_input = data.decode().strip()
 
-                client.write_file(name, privilege, file_name, user_input, reader, writer)
+                client.write_file(name, file_name, user_input, reader, writer)
+        
+        elif message == 'read':
+            if username_check(name, signedin):
+                writer.write('\n\rPlease enter file name:'.encode(encoding='UTF-8'))
+                data = await reader.readline()
+                file_name = data.decode().strip()
+
+                client.read_file(name, file_name, reader, writer)
                 
         elif message == 'quit':
             signedin.remove(name)

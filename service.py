@@ -17,6 +17,9 @@ class User:
         self.user_list.append(self.each_user)
         self.login_directory = f"root\{privilege}\{name}"
         self.fd = os.path.join(os.getcwd(), self.login_directory)
+        self.read_command_count = 0
+
+        os.chdir(self.fd)
         
     def change_folder(self, name, privilege, folder, reader, writer):
         
@@ -45,6 +48,7 @@ class User:
         #     print("Restoring the path") 
         #     os.chdir(cwd) 
         #     print("Current directory is-", os.getcwd()) 
+    
     def back_folder(self,name, privilege, folder, reader, writer):
         if self.fd != "C:\\Users\\EMKING\\ass3\\root":
             pathX = self.fd  
@@ -57,7 +61,7 @@ class User:
             writer.write(name.encode(encoding='UTF-8'))
             writer.write(">>".encode(encoding='UTF-8'))
             writer.write(self.fd.encode(encoding='UTF-8'))
-
+    
     def create_folder(self, name, privilege, folder, reader, writer):
         
         path = os.path.join(self.fd, folder)
@@ -70,7 +74,6 @@ class User:
         except OSError as error:
             print(error)
             writer.write("Error:Folder with this name exist. Try again\n\r".encode(encoding='UTF-8'))
-
 
     def print_list(self, name, reader, writer):
         dir_file_list = os.listdir(self.fd)
@@ -101,12 +104,27 @@ class User:
 
             writer.write('\n'.encode(encoding='UTF-8'))
 
-    def read_file(self, name):
-        pass
+    def read_file(self, name, file_name, reader, writer):
+        first = self.read_command_count*100
 
-    def write_file(self, name, privilege, file_name, user_input, reader, writer):
-        with open(f'{file_name}.txt', 'w') as writefile:
-            writefile.write(f'{user_input}\n')
+        with open(f"{file_name}.txt") as file:
+            text_file = "".join(line.rstrip() for line in file)
+
+            charr = text_file[first:first+100]
+            writer.write('\n\r'.encode(encoding='UTF-8'))
+            writer.write(f'{charr}\n\r'.encode(encoding='UTF-8'))
+        
+        first += 100
+
+        self.read_command_count += 1 
+
+    def write_file(self, name, file_name, user_input, reader, writer):
+        if user_input == '':
+            with open(f'{file_name}.txt', 'w') as writefile:    #Find proper command
+                writefile.writelines(f'{user_input}')
+        else:
+            with open(f'{file_name}.txt', 'a') as writefile:
+                writefile.writelines(f'{user_input}\n')
 
     def register(self, username, password, privileges):
         pass
