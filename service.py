@@ -81,31 +81,25 @@ class User:
             if os.path.isfile(path):
                 size = os.path.getsize(path)  
                 date = os.path.getctime(path)
-                print(size)
-                print(time.ctime(date))
-                writer.write('\n\r'.encode(encoding='UTF-8'))
-                writer.write(dir_file_list[i].encode(encoding='UTF-8'))
-                writer.write('\tsize:'.encode(encoding='UTF-8'))
-                writer.write(str(size).encode(encoding='UTF-8'))
-                writer.write('\tdate:'.encode(encoding='UTF-8'))
-                writer.write(str(date).encode(encoding='UTF-8'))
+
+                writer.write(f'{dir_file_list[i]}'.encode(encoding='UTF-8'))
+                writer.write(f'\tsize:{str(size)}'.encode(encoding='UTF-8'))
+                writer.write(f'\tdate:{time.ctime(date)}'.encode(encoding='UTF-8'))
 
             elif os.path.isdir(path):
                 total_size = 0
                 start_path = os.path.join(self.fd, dir_file_list[i]) # To get size of current directory
                 date = os.path.getctime(path)
+
                 for path, dirs, files in os.walk(start_path):
                     for f in files:
                         fp = os.path.join(path, f)
                         total_size += os.path.getsize(fp)
-                writer.write('\n\r'.encode(encoding='UTF-8'))
-                writer.write(dir_file_list[i].encode(encoding='UTF-8'))
-                writer.write('\tsize:'.encode(encoding='UTF-8'))
-                writer.write(str(total_size).encode(encoding='UTF-8'))
-                writer.write('\tdate:'.encode(encoding='UTF-8'))
-                writer.write(str(date).encode(encoding='UTF-8'))
-                print("Directory size: " + str(total_size))
-            writer.write('\n\r'.encode(encoding='UTF-8'))
+                writer.write(f'{dir_file_list[i]}'.encode(encoding='UTF-8'))
+                writer.write(f'\tsize:{str(total_size)}'.encode(encoding='UTF-8'))
+                writer.write(f'\tdate:{time.ctime(date)}'.encode(encoding='UTF-8'))
+
+            writer.write('\n'.encode(encoding='UTF-8'))
 
     def read_file(self, name):
         pass
@@ -132,11 +126,11 @@ class User:
         self._index += 1
         return self.user_list[self._index-1]
 
-    def __repr__(self):
-        return
+    # def __repr__(self):
+    #     return
 
-    def __str__(self):
-        return
+    # def __str__(self):
+        # return
  
 class Admin(User):
 
