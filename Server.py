@@ -150,6 +150,18 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         elif message == 'ls':
             if username_check(name, signedin):
                 client.print_list(name, reader, writer)
+
+        elif message == 'write':
+            if username_check(name, signedin):
+                writer.write('\n\rPlease enter file name:'.encode(encoding='UTF-8'))
+                data = await reader.readline()
+                file_name = data.decode().strip()
+
+                writer.write('\n\rPlease enter text:'.encode(encoding='UTF-8'))
+                data = await reader.readline()
+                user_input = data.decode().strip()
+
+                client.write_file(name, privilege, file_name, user_input, reader, writer)
                 
         elif message == 'quit':
             signedin.remove(name)

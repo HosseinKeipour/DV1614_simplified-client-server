@@ -104,8 +104,9 @@ class User:
     def read_file(self, name):
         pass
 
-    def write_file(self, name, input):
-        pass
+    def write_file(self, name, privilege, file_name, user_input, reader, writer):
+        with open(f'{file_name}.txt', 'w') as writefile:
+            writefile.write(f'{user_input}\n')
 
     def register(self, username, password, privileges):
         pass
