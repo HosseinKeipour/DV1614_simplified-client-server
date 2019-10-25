@@ -1,6 +1,7 @@
 import asyncio
 import random
 from service import User
+from service import Admin
 import os
 import json
 
@@ -113,8 +114,11 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     
             index = registered['client_name'].index(name)
             privilege = registered['client_privilege'][index]
-            client = User(name, password, privilege)
 
+            if privilege == "user":
+                client = User(name, password, privilege)
+            else:
+                client = Admin(name, password, privilege)
 
         elif message == 'commands':
             writer.write('\n\rmkdir--------create a new folder'.encode(encoding='UTF-8'))
@@ -169,6 +173,18 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 file_name = data.decode().strip()
 
                 client.read_file(name, file_name, reader, writer)
+
+        elif message == 'delete':
+            if username_check(name, signedin):
+                writer.write('\n\rPlease enter the username which should be deleted:'.encode(encoding='UTF-8'))
+                data = await reader.readline()
+                user_name = data.decode().strip()
+
+                writer.write('\n\rPlease enter your password:'.encode(encoding='UTF-8'))
+                data = await reader.readline()
+                input_password = data.decode().strip()
+                
+                client.delete(name, password, privilege, user_name, input_password, reader, writer)
                 
         elif message == 'quit':
             signedin.remove(name)

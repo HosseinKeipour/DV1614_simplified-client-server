@@ -16,9 +16,13 @@ class User:
         self.each_user = {'name': self.name, 'password': self.__password, 'privilege': self.privilege} # folder=[]
         self.user_list.append(self.each_user)
         self.login_directory = f"root\{privilege}\{name}"
+        self.init_cwd = os.getcwd()
         self.fd = os.path.join(os.getcwd(), self.login_directory)
         self.read_command_count = 0
 
+        with open('root/Server/client-info.json', 'r') as file:
+            self.registered = json.load(file)        
+    
         os.chdir(self.fd)
         
     def change_folder(self, name, privilege, folder, reader, writer):
@@ -50,7 +54,7 @@ class User:
         #     print("Current directory is-", os.getcwd()) 
     
     def back_folder(self,name, privilege, folder, reader, writer):
-        if self.fd != "C:\\Users\\EMKING\\ass3\\root":
+        if self.fd != f"{self.init_cwd}/root":
             pathX = self.fd  
             self.fd = os.path.dirname(pathX)
             writer.write(name.encode(encoding='UTF-8'))
@@ -71,9 +75,8 @@ class User:
             os.makedirs(path)
             writer.write("The folder has been made successfully\n\r".encode(encoding='UTF-8'))
             
-        except OSError as error:
-            print(error)
-            writer.write("Error:Folder with this name exist. Try again\n\r".encode(encoding='UTF-8'))
+        except OSError:
+            writer.write(f"Error: Cannot create a folder when folder {folder} already exists\n\r".encode(encoding='UTF-8'))
 
     def print_list(self, name, reader, writer):
         dir_file_list = os.listdir(self.fd)
@@ -105,18 +108,20 @@ class User:
             writer.write('\n'.encode(encoding='UTF-8'))
 
     def read_file(self, name, file_name, reader, writer):
-        first = self.read_command_count*100
-
-        with open(f"{file_name}.txt") as file:
-            text_file = "".join(line.rstrip() for line in file)
-
-            charr = text_file[first:first+100]
-            writer.write('\n\r'.encode(encoding='UTF-8'))
-            writer.write(f'{charr}\n\r'.encode(encoding='UTF-8'))
-        
-        first += 100
-
-        self.read_command_count += 1 
+        if file_name == "":
+            self.read_command_count = 0 
+        else:
+            try:
+                first = self.read_command_count*100
+                with open(f"{file_name}.txt") as file:
+                    text_file = "".join(line.rstrip() for line in file)
+                    charr = text_file[first:first+100]
+                    writer.write('\n\r'.encode(encoding='UTF-8'))
+                    writer.write(f'{charr}\n\r'.encode(encoding='UTF-8'))
+                    first += 100
+                    self.read_command_count += 1         
+            except FileNotFoundError as error:
+                writer.write(f"{error}.\n\r".encode(encoding='UTF-8'))   
 
     def write_file(self, name, file_name, user_input, reader, writer):
         if user_input == '':
@@ -153,5 +158,36 @@ class User:
  
 class Admin(User):
 
-    def delete(self, username, password):
-        pass
+    def delete(self, name, password, privilege, user_name, input_password, reader, writer):
+   
+        if user_name in self.registered['client_name']:
+            index = self.registered['client_name'].index(name)
+            admin_password = self.registered['client_password'][index]
+            
+            if admin_password ==  input_password:
+                user_name_index = self.registered['client_name'].index(user_name)
+                del self.registered['client_name'][user_name_index]
+                del self.registered['client_password'][user_name_index]
+                del self.registered['client_privilege'][user_name_index]
+                writer.write(f'\n\rThe {user_name} successfuly has been deleted.\n\r'.encode(encoding='UTF-8'))
+               
+                with open(f'{self.init_cwd}/root/Server/client-info.json', 'w') as file:
+                    json.dump(self.registered, file)    
+            else:
+                writer.write(f'\n\rThe password is wrong.\n\r'.encode(encoding='UTF-8'))
+
+        else:
+            writer.write(f'\n\rThe username does not exist.\n\r'.encode(encoding='UTF-8'))
+
+        # if username_check(name, self.registered['client_name']) == True:
+        #     index = self.registered['client_name'].index(name)
+        #     signedin.append(name)
+        #     break
+        # else:
+        #     writer.write('\n\rError: This username is not exist. Please try again.'.encode(encoding='UTF-8'))
+
+# def username_check(name1, name2):
+#     for i in range(0, len(name2)):   
+#         if name1 == name2[i]:
+#             return True
+#     return False
