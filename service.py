@@ -15,12 +15,12 @@ class User:
         self.user_list = []
         self.each_user = {'name': self.name, 'password': self.__password, 'privilege': self.privilege} # folder=[]
         self.user_list.append(self.each_user)
-        self.login_directory = f"root\{privilege}\{name}"
+        self.login_directory = f"root/{privilege}/{name}"
         self.init_cwd = os.getcwd()
         self.fd = os.path.join(os.getcwd(), self.login_directory)
         self.read_command_count = 0
 
-        with open('root/Server/client-info.json', 'r') as file:
+        with open(f'{self.init_cwd}/root/Server/client-info.json', 'r') as file:
             self.registered = json.load(file)        
     
         os.chdir(self.fd)
