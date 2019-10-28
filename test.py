@@ -1,2 +1,4 @@
-strr = '12345678901234567890'
-print(strr[:30])
+fd = "Hossei\\nShirin/Nasrin"
+ff = "Hossei\\"
+gg = fd.find(f'{ff}')
+print(gg)

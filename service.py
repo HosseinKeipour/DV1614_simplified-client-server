@@ -3,6 +3,8 @@ import asyncio
 import json
 import sys
 import time
+import shutil
+init_cwd = str(os.getcwd())
 
 class User:
     def __init__(self, name, password, privilege):
@@ -13,70 +15,112 @@ class User:
         self._index = 0
 
         self.user_list = []
-        self.each_user = {'name': self.name, 'password': self.__password, 'privilege': self.privilege} # folder=[]
+        self.each_user = {'name': self.name, 'password': self.__password, 'privilege': self.privilege} 
         self.user_list.append(self.each_user)
+
         self.login_directory = f"root/{privilege}/{name}"
-        self.init_cwd = os.getcwd()
-        self.fd = os.path.join(os.getcwd(), self.login_directory)
+        
+        self.fd = os.path.join(init_cwd, self.login_directory)
+
         self.read_command_count = 0
 
-        with open(f'{self.init_cwd}/root/Server/client-info.json', 'r') as file:
-            self.registered = json.load(file)        
+        with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
+            self.registered = json.load(file)     
     
         os.chdir(self.fd)
-        
+
     def change_folder(self, name, privilege, folder, reader, writer):
         
         # some non existing directory 
         path = os.path.join(self.fd, folder)
-        cwd = os.getcwd()
-        print(f'cwd = {cwd}')
-        print(f'path = {path}')
-        
+        cwd = str(os.getcwd())
+        print('path', path)
+        print('cwd', cwd)
+        print('self.fd',self.fd)
+        print(f"init_cwd : {init_cwd}\\root")
         # trying to insert to flase directory 
-        try: 
-            os.chdir(path) 
-            writer.write(name.encode(encoding='UTF-8'))
-            writer.write(">>".encode(encoding='UTF-8'))
-            writer.write(path.encode(encoding='UTF-8'))
-            self.fd = os.path.join(self.fd, folder)
-            print(self.fd)
-            cwd = os.getcwd()
-            print(f'try cwd = {cwd}')
-        # Caching the exception     
-        except: 
-            writer.write("Error:The folder does not exist. Try again\n\r".encode(encoding='UTF-8'))
-            print("Something wrong with specified Exception- ")     
-        # handling with finally           
-        # finally: 
-        #     print("Restoring the path") 
-        #     os.chdir(cwd) 
-        #     print("Current directory is-", os.getcwd()) 
+        if self.fd == f"{init_cwd}\\root":
+            if privilege == "admin" or "User" == folder:
+                try:
+                    os.chdir(path) 
+                    writer.write(name.encode(encoding='UTF-8'))
+                    writer.write(">>".encode(encoding='UTF-8'))
+                    writer.write(path.encode(encoding='UTF-8'))
+                    self.fd = os.path.join(self.fd, folder)
+                    print(self.fd)
+                    cwd = str(os.getcwd())
+                    print(f'try cwd = {cwd}')
+                # Caching the exception     
+                except: 
+                    writer.write("Error:The folder does not exist. Try again\n\r".encode(encoding='UTF-8'))
+                    print("Something wrong with specified Exception- ")     
+            else:
+                writer.write("Error: Your are not allowed to enter this folder.\n\r".encode(encoding='UTF-8'))
+
+        elif self.fd == f"{init_cwd}\\root\\User":
+            if name == folder or privilege == "admin":
+                try:
+                    os.chdir(path) 
+                    writer.write(name.encode(encoding='UTF-8'))
+                    writer.write(">>".encode(encoding='UTF-8'))
+                    writer.write(path.encode(encoding='UTF-8'))
+                    self.fd = os.path.join(self.fd, folder)
+                    print(self.fd)
+                    cwd = str(os.getcwd())
+                    print(f'try cwd = {cwd}')
+                # Caching the exception     
+                except: 
+                    writer.write("Error:The folder does not exist. Try again\n\r".encode(encoding='UTF-8'))
+                    print("Something wrong with specified Exception- ")
+            else:
+                writer.write("Error: Your are not allowed to enter this folder.\n\r".encode(encoding='UTF-8'))
+
+        else:
+            try:
+                os.chdir(path) 
+                writer.write(name.encode(encoding='UTF-8'))
+                writer.write(">>".encode(encoding='UTF-8'))
+                writer.write(path.encode(encoding='UTF-8'))
+                self.fd = os.path.join(self.fd, folder)
+                print(self.fd)
+                cwd = str(os.getcwd())
+                print(f'try cwd = {cwd}')
+            # Caching the exception     
+            except: 
+                writer.write("Error:The folder does not exist. Try again\n\r".encode(encoding='UTF-8'))
+                print("Something wrong with specified Exception- ")  
     
-    def back_folder(self,name, privilege, folder, reader, writer):
-        if self.fd != f"{self.init_cwd}/root":
-            pathX = self.fd  
+    def back_folder(self,name, privilege, reader, writer):
+
+        if self.fd != f"{init_cwd}\\root":
+            pathX = self.fd
             self.fd = os.path.dirname(pathX)
             writer.write(name.encode(encoding='UTF-8'))
             writer.write(">>".encode(encoding='UTF-8'))
             writer.write(self.fd.encode(encoding='UTF-8'))
+
         else:
             writer.write("Error:You are in root directory\n\r".encode(encoding='UTF-8'))
             writer.write(name.encode(encoding='UTF-8'))
             writer.write(">>".encode(encoding='UTF-8'))
-            writer.write(self.fd.encode(encoding='UTF-8'))
+            writer.write(self.fd.encode(encoding='UTF-8')) 
     
     def create_folder(self, name, privilege, folder, reader, writer):
         
-        path = os.path.join(self.fd, folder)
-        # path2 = os.path.dirname(os.path.abspath(folder))
-        # print(path2)
-        try:
-            os.makedirs(path)
-            writer.write("The folder has been made successfully\n\r".encode(encoding='UTF-8'))
-            
-        except OSError:
-            writer.write(f"Error: Cannot create a folder when folder {folder} already exists\n\r".encode(encoding='UTF-8'))
+        is_path = self.fd.find(f'{init_cwd}\\root/user/{name}')
+        print(is_path)
+
+        #if f'{init_cwd}\\root/User/{name}' in self.fd or privilege == "admin":
+        if is_path >= 0 or privilege == "admin":
+            path = os.path.join(self.fd, folder)
+            try:
+                os.makedirs(path)
+                writer.write("The folder has been made successfully\n\r".encode(encoding='UTF-8'))
+   
+            except OSError:
+                writer.write("Error: Folder with this name exist.\n\r".encode(encoding='UTF-8'))
+        else:
+            writer.write("Error: Your are not allowed to create folder here.\n\r".encode(encoding='UTF-8'))
 
     def print_list(self, name, reader, writer):
         dir_file_list = os.listdir(self.fd)
@@ -105,7 +149,7 @@ class User:
                 writer.write(f'\tsize:{str(total_size)}'.encode(encoding='UTF-8'))
                 writer.write(f'\tdate:{time.ctime(date)}'.encode(encoding='UTF-8'))
 
-            writer.write('\n'.encode(encoding='UTF-8'))
+            writer.write('\n\r'.encode(encoding='UTF-8'))
 
     def read_file(self, name, file_name, reader, writer):
         if file_name == "":
@@ -150,15 +194,9 @@ class User:
         self._index += 1
         return self.user_list[self._index-1]
 
-    # def __repr__(self):
-    #     return
-
-    # def __str__(self):
-        # return
- 
 class Admin(User):
 
-    def delete(self, name, password, privilege, user_name, input_password, reader, writer):
+    def delete(self, name, password, privilege, user_name, input_password, signedin, reader, writer):
    
         if user_name in self.registered['client_name']:
             index = self.registered['client_name'].index(name)
@@ -166,28 +204,36 @@ class Admin(User):
             
             if admin_password ==  input_password:
                 user_name_index = self.registered['client_name'].index(user_name)
+                user_name_privilege = self.registered['client_privilege'][user_name_index]
+                
+                with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
+                    self.registered = json.load(file)                
                 del self.registered['client_name'][user_name_index]
                 del self.registered['client_password'][user_name_index]
                 del self.registered['client_privilege'][user_name_index]
-                writer.write(f'\n\rThe {user_name} successfuly has been deleted.\n\r'.encode(encoding='UTF-8'))
-               
-                with open(f'{self.init_cwd}/root/Server/client-info.json', 'w') as file:
+                with open(f'{init_cwd}/root/Server/client-info.json', 'w') as file:
+                    json.dump(self.registered, file)                
+                
+                with open(f'{init_cwd}/root/Server/signed-info.json', 'r') as file:
+                    signedin = json.load(file)
+                try:
+                    signedin.remove(f'{user_name}')
+                except ValueError:
+                    pass
+                with open(f'{init_cwd}/root/Server/signed-info.json', 'w') as file:
+                    json.dump(signedin, file)
+
+                del_path = os.path.join(init_cwd, f"root/{user_name_privilege}/{user_name}")
+                try:
+                    shutil.rmtree(del_path)
+                    writer.write(f'\n\rThe {user_name} successfuly has been deleted.\n\r'.encode(encoding='UTF-8'))
+                except:
+                    writer.write(f'\n\rError : Error while deleting.\n\r'.encode(encoding='UTF-8'))
+                               
+                with open(f'{init_cwd}/root/Server/client-info.json', 'w') as file:
                     json.dump(self.registered, file)    
             else:
                 writer.write(f'\n\rThe password is wrong.\n\r'.encode(encoding='UTF-8'))
 
         else:
             writer.write(f'\n\rThe username does not exist.\n\r'.encode(encoding='UTF-8'))
-
-        # if username_check(name, self.registered['client_name']) == True:
-        #     index = self.registered['client_name'].index(name)
-        #     signedin.append(name)
-        #     break
-        # else:
-        #     writer.write('\n\rError: This username is not exist. Please try again.'.encode(encoding='UTF-8'))
-
-# def username_check(name1, name2):
-#     for i in range(0, len(name2)):   
-#         if name1 == name2[i]:
-#             return True
-#     return False

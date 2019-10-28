@@ -6,13 +6,12 @@ import os
 import json
 import socket
 
+
 name_list = [""]   # report3- we should define some unacceptable or restrict chararcter
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
 signedin = []
 created_folder = {}
-path = os.getcwd()
-
-
+path = str(os.getcwd())
 
 async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     global path 
@@ -40,8 +39,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         #     message = 'quit'
         data = await reader.readline()
         message = data.decode().strip()
-            
-                
 
         if message == 'register':
             while True:
@@ -75,13 +72,13 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     writer.write('\n\rError:The selected privilge is incorrect.'.encode(encoding='UTF-8'))
 
             if privilege == "user":
-                user_path = f"{path}root/user/{name}"
+                user_path = f"{path}/root/user/{name}"
                 os.mkdir(user_path)
-                
+
             elif privilege == "admin":
-                admin_path = f"{path}root/admin/{name}"
+                admin_path = f"{path}/root/admin/{name}"
                 os.mkdir(admin_path)
-            
+
             await writer.drain()
 
             with open(f'{path}/root/Server/client-info.json', 'w') as file:
@@ -92,7 +89,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             # with open('root/Server/created_folder.json', 'w') as file:
             #     json.dump(created_folder, file)
 
-
         elif message == 'login':
             while True:
                 writer.write('\n\rPlease enter your username:'.encode(encoding='UTF-8'))
@@ -101,7 +97,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 
                 if username_check(name, registered['client_name']) and name not in signedin:
                     index = registered['client_name'].index(name)
-                    signedin.append(name)
                     break
                 else:
                     writer.write('\n\rError: This username is not exist or already logged in.'.encode(encoding='UTF-8'))
@@ -112,9 +107,14 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 password = data.decode().strip()
 
                 if password == registered['client_password'][index]:
-                    # writer.write(name.encode(encoding='UTF-8'))
+                    with open(f'{path}/root/Server/signed-info.json', 'r') as file:
+                        signedin = json.load(file)
+
+                    signedin.append(name)
+
                     with open(f'{path}/root/Server/signed-info.json', 'w') as file:
                         json.dump(signedin, file)
+
                     break
                 else:
                     writer.write('\n\rError:The password is incorrect. Please try again.'.encode(encoding='UTF-8'))
@@ -154,8 +154,9 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 client.change_folder(name, privilege, folder, reader, writer)
 
         elif message == 'cd ..':
+            
             if username_check(name, signedin):
-                client.back_folder(name, privilege, folder, reader, writer)
+                client.back_folder(name, privilege, reader, writer)
 
         elif message == 'ls':
             if username_check(name, signedin):
@@ -181,7 +182,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
                 client.read_file(name, file_name, reader, writer)
 
-        elif message == 'delete':
+        elif message == 'del':
             if username_check(name, signedin):
                 writer.write('\n\rPlease enter the username which should be deleted:'.encode(encoding='UTF-8'))
                 data = await reader.readline()
@@ -191,12 +192,17 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 data = await reader.readline()
                 input_password = data.decode().strip()
                 
-                client.delete(name, password, privilege, user_name, input_password, reader, writer)
+                client.delete(name, password, privilege, user_name, input_password, signedin, reader, writer)
                 
         elif message == 'quit':
+            with open(f'{path}/root/Server/signed-info.json', 'r') as file:
+                signedin = json.load(file)            
+            
             signedin.remove(name)
+            
             with open(f'{path}/root/Server/signed-info.json', 'w') as file:
                 json.dump(signedin, file)
+
             close_msg = f'{addr!r} wants to close the connection.'
             print(close_msg)
             break
@@ -205,6 +211,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
         writer.write('>>'.encode(encoding='UTF-8'))
     writer.close()
+
     # except:
     #     print("CONNECTION LOST")
     #     signedin.remove(name)
@@ -237,48 +244,11 @@ def username_check(name1, name2):
             return True
     return False
 
-def get_first_path():
-    if path_flag == 1:
-        path = os.getcwd()
-        path_flag = 2   
-    return path
-
-
-# async def register_client(reader, writer):
-#     while True:
-#         writer.write('\n\rPlease enter your username:'.encode(encoding='UTF-8'))
-#         data = await reader.readline()
-#         # Transfer format is bytes, decode() makes it a string
-#         name = data.decode().strip()
-            
-#         if username_check(name, name_list) == False:
-#             name_list.append(name)
-#             break
-#             writer.write('\n\rError: The username has been selected'.encode(encoding='UTF-8'))
-
-                        
-                
-#     while True:
-#         writer.write('\n\rPlease enter your password:'.encode(encoding='UTF-8'))
-#         data = await reader.readline()
-#         # Transfer format is bytes, decode() makes it a string
-#         password = data.decode().strip()
-        
-#         if password != "":
-#             break
-#         else:
-#             writer.write('\n\rError:The password pattern is incorrect.'.encode(encoding='UTF-8'))
-
-#     while True:
-        # writer.write('\n\rPlease define your privilege (user/admin):'.encode(encoding='UTF-8'))
-        # data = await reader.readline()
-        # # Transfer format is bytes, decode() makes it a string
-        # privilege = data.decode().strip()                    
-        # if privilege == "user" or privilege == "admin":
-        #     break
-        # else:
-        #     writer.write('\n\rError:The selected privilge is incorrect.'.encode(encoding='UTF-8'))
-
+# def get_first_path():
+#     if path_flag == 1:
+#         path = str(os.getcwd())
+#         path_flag = 2   
+#     return path
 
 asyncio.run(main())
 
