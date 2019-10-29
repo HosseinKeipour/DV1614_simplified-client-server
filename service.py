@@ -7,11 +7,12 @@ import shutil
 init_cwd = str(os.getcwd())
 
 class User:
-    def __init__(self, name, password, privilege):
+    def __init__(self, name,  password, privilege):
         self.name = name
         self.__password = password
         self.privilege = privilege
-
+        
+        
         self._index = 0
 
         self.user_list = []
@@ -151,13 +152,15 @@ class User:
 
             writer.write('\n\r'.encode(encoding='UTF-8'))
 
-    def read_file(self, name, file_name, reader, writer):
+    def read_file(self, file_name, reader, writer):
         if file_name == "":
-            self.read_command_count = 0 
+            self.read_command_count = 0
+            
         else:
             try:
                 first = self.read_command_count*100
-                with open(f"{file_name}.txt") as file:
+                print(f"{self.fd}/{file_name}")
+                with open(f"{self.fd}/{file_name}.txt") as file:
                     text_file = "".join(line.rstrip() for line in file)
                     charr = text_file[first:first+100]
                     writer.write('\n\r'.encode(encoding='UTF-8'))
