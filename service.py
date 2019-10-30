@@ -6,6 +6,7 @@ import time
 import shutil
 init_cwd = str(os.getcwd())
 
+
 class User:
     def __init__(self, name,  password, privilege):
         self.name = name
@@ -14,7 +15,6 @@ class User:
         
         
         self._index = 0
-
         self.user_list = []
         self.each_user = {'name': self.name, 'password': self.__password, 'privilege': self.privilege} 
         self.user_list.append(self.each_user)
@@ -35,13 +35,9 @@ class User:
         # some non existing directory 
         path = os.path.join(self.fd, folder)
         cwd = str(os.getcwd())
-        print('path', path)
-        print('cwd', cwd)
-        print('self.fd',self.fd)
-        print(f"init_cwd : {init_cwd}\\root")
         # trying to insert to flase directory 
         if self.fd == f"{init_cwd}\\root":
-            if privilege == "admin" or "User" == folder:
+            if privilege == "admin" or "User" == folder :
                 try:
                     os.chdir(path) 
                     writer.write(name.encode(encoding='UTF-8'))
@@ -53,8 +49,7 @@ class User:
                     print(f'try cwd = {cwd}')
                 # Caching the exception     
                 except: 
-                    writer.write("Error:The folder does not exist. Try again\n\r".encode(encoding='UTF-8'))
-                    print("Something wrong with specified Exception- ")     
+                    writer.write("Error:The folder does not exist. Try again\n\r".encode(encoding='UTF-8'))    
             else:
                 writer.write("Error: Your are not allowed to enter this folder.\n\r".encode(encoding='UTF-8'))
 
@@ -117,7 +112,6 @@ class User:
             try:
                 os.makedirs(path)
                 writer.write("The folder has been made successfully\n\r".encode(encoding='UTF-8'))
-   
             except OSError:
                 writer.write("Error: Folder with this name exist.\n\r".encode(encoding='UTF-8'))
         else:
@@ -152,11 +146,9 @@ class User:
 
             writer.write('\n\r'.encode(encoding='UTF-8'))
 
-    def read_file(self, file_name, reader, writer):
-        if file_name == "":
-            self.read_command_count = 0
-            
-        else:
+    def read_file(self, file_name, read_flag, reader, writer):
+        if self.read_command_count == 0 and not read_flag:
+            writer.write('if self.read_command_count == 0 and not read_flag:'.encode(encoding='UTF-8'))
             try:
                 first = self.read_command_count*100
                 print(f"{self.fd}/{file_name}")
@@ -165,10 +157,42 @@ class User:
                     charr = text_file[first:first+100]
                     writer.write('\n\r'.encode(encoding='UTF-8'))
                     writer.write(f'{charr}\n\r'.encode(encoding='UTF-8'))
-                    first += 100
-                    self.read_command_count += 1         
+                    first += 100     
             except FileNotFoundError as error:
-                writer.write(f"{error}.\n\r".encode(encoding='UTF-8'))   
+                writer.write(f"{error}.\n\r".encode(encoding='UTF-8'))
+
+
+        if read_flag:
+            writer.write('read_flag:'.encode(encoding='UTF-8'))
+            try:
+                first = self.read_command_count*100
+                print(f"{self.fd}/{file_name}")
+                with open(f"{self.fd}/{file_name}.txt") as file:
+                    text_file = "".join(line.rstrip() for line in file)
+                    charr = text_file[first:first+100]
+                    writer.write('\n\r'.encode(encoding='UTF-8'))
+                    writer.write(f'{charr}\n\r'.encode(encoding='UTF-8'))
+                    first += 100     
+            except FileNotFoundError as error:
+                writer.write(f"{error}.\n\r".encode(encoding='UTF-8'))  
+        if self.read_command_count != 0 and not read_flag:
+            writer.write('self.read_command_count != 0 and not read_flag:'.encode(encoding='UTF-8'))
+            self.read_command_count = 0
+            try:
+                first = self.read_command_count*100
+                print(f"{self.fd}/{file_name}")
+                with open(f"{self.fd}/{file_name}.txt") as file:
+                    text_file = "".join(line.rstrip() for line in file)
+                    charr = text_file[first:first+100]
+                    writer.write('\n\r'.encode(encoding='UTF-8'))
+                    writer.write(f'{charr}\n\r'.encode(encoding='UTF-8'))
+                    first += 100    
+            except FileNotFoundError as error:
+                writer.write(f"{error}.\n\r".encode(encoding='UTF-8'))
+        self.read_command_count += 1 
+        if file_name == "":
+            writer.write('file_name == ""'.encode(encoding='UTF-8'))
+            self.read_command_count = 0
 
     def write_file(self, name, file_name, user_input, reader, writer):
         if user_input == '':

@@ -6,6 +6,7 @@ import os
 import json
 import socket
 import signal
+import string
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -13,6 +14,7 @@ name_list = [""]   # report3- we should define some unacceptable or restrict cha
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
 signedin = []
 addr_port = []
+
 created_folder = {}
 path = str(os.getcwd())
 with open(f'{path}/root/Server/signed-info.json', 'w') as file:
@@ -23,7 +25,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     addr = writer.get_extra_info('peername')
     message = f'{addr!r} is connected !!!!' # !r calls the __repr__ method
     print(message)
-    flag = False
+    pre_file_name = ""
     with open(f'{path}/root/Server/client-info.json', 'r') as file:
                 registered = json.load(file)
     with open(f'{path}/root/Server/signed-info.json', 'r') as file:
@@ -36,121 +38,97 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     await writer.drain()
     
     while True:
-
-        # if flag == False:
-        #     writer.write('\n\rYou are conected to Pytonista Server'.encode(encoding='UTF-8'))
-        #     writer.write('\n\rPlease select login or register (login/register)'.encode(encoding='UTF-8'))
-        #     writer.write('>>'.encode(encoding='UTF-8'))
-        #     await writer.drain()
-        #     flag = True
-        # # try:
-        #     data = await reader.read(1000)
-        #     message = data.decode().strip()  
-        # except ConnectionError:
-        #     message = 'quit'
         data = await reader.read(1000)
-        print("afterdata")
-        message = data.decode().strip()
-        print(message)
+        msg = data.decode().strip()
+        message = msg.split()
         # await asyncio.sleep(random.randint(0, 10))
 
-        if message == 'register':
+        if message[0] == 'register':
+            reg_Flag = False
             while True:
-                writer.write('\n\rPlease enter your username:'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                name = data.decode().strip()
+                if len(message) == 4:
+                    name = message[1]
+                    password = message[2]
+                    privilege = message[3]
+                    restricted_char = string.punctuation
+                    for char in restricted_char:
+                        if char in name:
+                            writer.write('\n\rError:The username characters is not acceptable. Try again!!!!.'.encode(encoding='UTF-8'))
+                            await writer.drain()
+                            reg_Flag = True
+                            break
+                    if reg_Flag == True:
+                        break
+                else:
+                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    writer.write('\n\rUse: register <username> <password> <privilege>'.encode(encoding='UTF-8'))
+                    await writer.drain()
+                    break
                 
-                if username_check(name, registered['client_name']) == False:
+                if username_check(name, registered['client_name']) == False and password != "" and (privilege == "user" or privilege == "admin"):
                     registered['client_name'].append(name)
-                    break
-                writer.write('\n\rError: The username has been selected'.encode(encoding='UTF-8'))
-                await writer.drain()
-            while True:
-                writer.write('\n\rPlease enter your password:'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                password = data.decode().strip()
-                if password != "":
                     registered['client_password'].append(password)
-                    break
-                else:
-                    writer.write('\n\rError:The password pattern is incorrect.'.encode(encoding='UTF-8'))
-                    await writer.drain()
-            while True:
-                writer.write('\n\rPlease define your privilege (user/admin):'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                privilege = data.decode().strip()                    
-                if privilege == "user" or privilege == "admin":
                     registered['client_privilege'].append(privilege)
+                    if privilege == "user":
+                        user_path = f"{path}/root/user/{name}"
+                        os.mkdir(user_path)
+
+                    elif privilege == "admin":
+                        admin_path = f"{path}/root/admin/{name}"
+                        os.mkdir(admin_path)
+
+                    with open(f'{path}/root/Server/client-info.json', 'w') as file:
+                        json.dump(registered, file)
                     break
                 else:
-                    writer.write('\n\rError:The selected privilge is incorrect.'.encode(encoding='UTF-8'))
-                    await writer.drain()
-
-            if privilege == "user":
-                user_path = f"{path}/root/user/{name}"
-                os.mkdir(user_path)
-
-            elif privilege == "admin":
-                admin_path = f"{path}/root/admin/{name}"
-                os.mkdir(admin_path)
-
-            await writer.drain()
-
-            with open(f'{path}/root/Server/client-info.json', 'w') as file:
-                json.dump(registered, file)
-            
-            # created_folder[name] = []
-            # created_folder[name].append(name)
-            # with open('root/Server/created_folder.json', 'w') as file:
-            #     json.dump(created_folder, file)
+                    if username_check(name, registered['client_name']) == True:
+                        writer.write('\n\rError:The username has been already selected.'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        break
+                    else:
+                        writer.write('\n\rError: The selected username, password or privilege is not correct.'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        break
         
-        elif message == 'login':
+        elif message[0] == 'login':
             while True:
-                writer.write('\n\rPlease enter your username:'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                name = data.decode().strip()
-                
-                if username_check(name, registered['client_name']) and name not in signedin:
+                if len(message) == 3:
+                        name = message[1]
+                        password = message[2]
+                else:
+                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    writer.write('\n\rUse: login <username> <password>'.encode(encoding='UTF-8'))
+                    await writer.drain()
+                    break
+
+                if (username_check(name, registered['client_name']) and name not in signedin):
                     index = registered['client_name'].index(name)
+
+                    if password == registered['client_password'][index]:
+                        with open(f'{path}/root/Server/signed-info.json', 'r') as file:
+                            signedin = json.load(file)
+                        signedin.append(name)
+                        with open(f'{path}/root/Server/signed-info.json', 'w') as file:
+                            json.dump(signedin, file)
+                    else:
+                        writer.write('\n\rError:The password is incorrect. Please try again.'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        break
+                    
+                    index = registered['client_name'].index(name)
+                    privilege = registered['client_privilege'][index]
+
+                    if privilege == "user":
+                        client = User(name, password, privilege)
+                    else:
+                        client = Admin(name, password, privilege)
                     break
                 else:
                     writer.write('\n\rError: This username is not exist or already logged in.'.encode(encoding='UTF-8'))
                     await writer.drain()
-
-            while True:
-                writer.write('\n\rPlease enter your password:'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                password = data.decode().strip()
-
-                if password == registered['client_password'][index]:
-                    with open(f'{path}/root/Server/signed-info.json', 'r') as file:
-                        signedin = json.load(file)
-
-                    signedin.append(name)
-                    addr_port.append(addr[1])
-
-                    with open(f'{path}/root/Server/signed-info.json', 'w') as file:
-                        json.dump(signedin, file)
-
                     break
-                else:
-                    writer.write('\n\rError:The password is incorrect. Please try again.'.encode(encoding='UTF-8'))
-                    await writer.drain()
 
-            index = registered['client_name'].index(name)
-            privilege = registered['client_privilege'][index]
-
-            if privilege == "user":
-                client = User(name, password, privilege)
-            else:
-                client = Admin(name, password, privilege)
-
-        elif message == 'commands':
+        elif message[0] == 'commands':
             writer.write('\n\rmkdir--------create a new folder'.encode(encoding='UTF-8'))
             writer.write('\n\rcd-----------change folder'.encode(encoding='UTF-8'))
             writer.write('\n\rls-----------list directory contents'.encode(encoding='UTF-8'))
@@ -163,68 +141,113 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             writer.write('\n\rcommands-----print information about all available commands'.encode(encoding='UTF-8'))
             await writer.drain()
 
-        elif message == 'mkdir':
-            if username_check(name, signedin):
-                writer.write('\n\rPlease enter folder name:'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                folder = data.decode().strip() 
-                client.create_folder(name, privilege, folder, reader, writer)
+        elif message[0] == 'mkdir':
+            while True:
+                if len(message) == 2:
+                    folder = message[1]
+                else:
+                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    writer.write('\n\rUse: mkdir <folder_name>'.encode(encoding='UTF-8'))
+                    await writer.drain()
+                    break
+                if username_check(name, signedin):
+                    client.create_folder(name, privilege, folder, reader, writer)
+                    break
+                else:
+                    writer.write('\n\rYou should sign in first'.encode(encoding='UTF-8'))
+                    await writer.drain()
+                    break
 
-        elif message == 'cd':
-            if username_check(name, signedin):
-                writer.write('\n\rPlease enter folder name:'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                folder = data.decode().strip() 
-                client.change_folder(name, privilege, folder, reader, writer)
+        elif message[0] == 'cd':
+            while True:
+                if len(message) == 2:
+                    folder = message[1]
+                    restricted_char = string.punctuation
+                    print(restricted_char)
+                    
+                else:
+                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    writer.write('\n\rUse: cd <folder_name> or cd .. to go back'.encode(encoding='UTF-8'))
+                    await writer.drain()
+                    break
 
-        elif message == 'cd ..':
+                if folder == '..':
+                    if username_check(name, signedin):
+                        client.back_folder(name, privilege, reader, writer)
+                        break
+
+                for char in restricted_char:
+                    cd_flag = False
+                    if char in folder:
+                        writer.write('\n\rError:The folder does not exist. Try again!!!!.'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        cd_flag = True
+                        break
+                if cd_flag == False:
+                    client.change_folder(name, privilege, folder, reader, writer)         
+                    break
+                break
+
+        elif message[0] == 'ls':
+            while True:
+                if len(message) == 1:
+                    if username_check(name, signedin):
+                        client.print_list(name, reader, writer)
+                        break
+                else:
+                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    writer.write('\n\rUse: ls'.encode(encoding='UTF-8'))
+                    await writer.drain()
+                    break
             
-            if username_check(name, signedin):
-                client.back_folder(name, privilege, reader, writer)
-
-        elif message == 'ls':
-            if username_check(name, signedin):
-                client.print_list(name, reader, writer)
-
-        elif message == 'write':
-            if username_check(name, signedin):
-                writer.write('\n\rPlease enter file name:'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                file_name = data.decode().strip()
-
-                writer.write('\n\rPlease enter text:'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                user_input = data.decode().strip()
-
-                client.write_file(name, file_name, user_input, reader, writer)
+        elif message[0] == 'write':
+            while True:
+                if len(message) >= 2:
+                    file_name = message[1]
+                    user_input = ' '.join(message[2:])
+                else:
+                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    writer.write('\n\rUse: write <filename> <input>'.encode(encoding='UTF-8'))
+                    await writer.drain()
+                    break
+                if username_check(name, signedin):
+                    client.write_file(name, file_name, user_input, reader, writer)
+                    break
         
-        elif message == 'read':
-            if username_check(name, signedin):
-                writer.write('\n\rPlease enter file name:'.encode(encoding='UTF-8'))
-                data = await reader.read(1000)
-                file_name = data.decode().strip()
+        elif message[0] == 'read':
+            read_flag = False
+            while True:
+                if len(message) == 1:
+                    file_name = ""
+                elif len(message) == 2:
+                    file_name = message[1]
+                else:
+                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    writer.write('\n\rUse: read <filename>'.encode(encoding='UTF-8'))
+                    await writer.drain()
+                    break
+                if username_check(name, signedin):
+                    if pre_file_name == file_name: 
+                        read_flag = True
+                    client.read_file(file_name, read_flag, reader, writer)
+                    pre_file_name = str(file_name)
+                    break
 
-                client.read_file(file_name, reader, writer)
-
-        elif message == 'del':
-            if username_check(name, signedin):
-                writer.write('\n\rPlease enter the username which should be deleted:'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                user_name = data.decode().strip()
-
-                writer.write('\n\rPlease enter your password:'.encode(encoding='UTF-8'))
-                await writer.drain()
-                data = await reader.read(1000)
-                input_password = data.decode().strip()
+        elif message[0] == 'del':
+            while True:
+                if len(message) == 3:
+                    user_name = message[1]
+                    input_password = message[2]
+                else:
+                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    writer.write('\n\rUse: del <username> <admin_password>'.encode(encoding='UTF-8'))
+                    await writer.drain()
+                    break
+                if username_check(name, signedin):
+                    client.delete(name, password, privilege, user_name, input_password, signedin, reader, writer)
+                    break
                 
-                client.delete(name, password, privilege, user_name, input_password, signedin, reader, writer)
-                
-        elif message == 'quit':
+        elif message[0] == 'quit':
             with open(f'{path}/root/Server/signed-info.json', 'r') as file:
                 signedin = json.load(file)            
             
@@ -240,7 +263,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             writer.write('\n\rThe implemented command is wrong.Please type "commands"'.encode(encoding='UTF-8'))
             await writer.drain()
 
-        writer.write('>>'.encode(encoding='UTF-8'))
+        writer.write('\n\r>>'.encode(encoding='UTF-8'))
         await writer.drain()
     writer.close()
 
