@@ -53,7 +53,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     restricted_char = string.punctuation
                     for char in restricted_char:
                         if char in name:
-                            writer.write('\n\rError:The username characters is not acceptable. Try again!!!!.'.encode(encoding='UTF-8'))
+                            writer.write('\n\rError:The username characters are not acceptable. Try again!'.encode(encoding='UTF-8'))
                             await writer.drain()
                             reg_Flag = True
                             break
@@ -97,6 +97,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         password = message[2]
                 else:
                     writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    await writer.drain()
                     writer.write('\n\rUse: login <username> <password>'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
@@ -133,8 +134,8 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             mkdir--------create a new folder
             cd-----------change folder
             ls-----------list directory contents
-            readfile-----read data from the file
-            writefile----write the data to the end of the file
+            read---------read data from the file
+            write--------write the data to the end of the file
             login--------log in the user
             register-----register a new user
             del----------delete a user from the server
@@ -142,17 +143,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             commands-----information about all available commands
             """
             writer.write(f'\n\r{help_message}'.encode())
-
-            # writer.write('\n\rmkdir--------create a new folder'.encode())
-            # writer.write('\n\rcd-----------change folder'.encode())
-            # writer.write('\n\rls-----------list directory contents'.encode())
-            # writer.write('\n\rreadfile-----read data from the file'.encode())
-            # writer.write('\n\rwritefile----write the data to the end of the file'.encode())
-            # writer.write('\n\rlogin--------log in the user'.encode())
-            # writer.write('\n\rregister-----register a new user'.encode())
-            # writer.write('\n\rdel----------delete a user from the server'.encode())
-            # writer.write('\n\rquit---------log out the user, close the connection, close the application'.encode())
-            # writer.write('\n\rcommands-----information about all available commands'.encode())
             await writer.drain()
 
         elif message[0] == 'mkdir':
@@ -161,14 +151,15 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     folder = message[1]
                 else:
                     writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    await writer.drain()
                     writer.write('\n\rUse: mkdir <folder_name>'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
                 if username_check(name, signedin):
-                    client.create_folder(name, privilege, folder, reader, writer)
+                    writer.write(client.create_folder(name, privilege, folder).encode(encoding='UTF-8'))
                     break
                 else:
-                    writer.write('\n\rYou should sign in first'.encode(encoding='UTF-8'))
+                    writer.write('\n\rError: You should sign in first'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
 
@@ -228,11 +219,12 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     user_input = ' '.join(message[2:])
                 else:
                     writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    await writer.drain()
                     writer.write('\n\rUse: write <filename> <input>'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
                 if username_check(name, signedin):
-                    client.write_file(name, file_name, user_input, reader, writer)
+                    client.write_file(name, file_name, user_input)
                     break
         
         elif message[0] == 'read':
@@ -244,13 +236,17 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     file_name = message[1]
                 else:
                     writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    await writer.drain()
                     writer.write('\n\rUse: read <filename>'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
+
                 if username_check(name, signedin):
-                    if pre_file_name == file_name: 
+                    if pre_file_name == file_name: # "" == file_name
                         read_flag = True
-                    client.read_file(file_name, read_flag, reader, writer)
+
+                    writer.write(client.read_file(file_name, read_flag).encode(encoding='UTF-8'))
+                    await writer.drain()
                     pre_file_name = str(file_name)
                     break
 
@@ -261,11 +257,14 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     input_password = message[2]
                 else:
                     writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    await writer.drain()
                     writer.write('\n\rUse: del <username> <admin_password>'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
+                
                 if username_check(name, signedin):
-                    client.delete(name, password, privilege, user_name, input_password, signedin, reader, writer)
+                    writer.write(client.delete(name, password, privilege, user_name, input_password, signedin).encode(encoding='UTF-8'))
+                    await writer.drain()
                     break
                 
         elif message[0] == 'quit':

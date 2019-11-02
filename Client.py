@@ -12,19 +12,7 @@ async def tcp_echo_client():
         data = await reader.read(1000)
         print(f"{data.decode()}")
 
-        # print(f'{data.decode()!r}')
-
-        # data = bytearray()
-        # while True:
-        #     chunk = await reader.read(1000)
-        #     print(data.decode())
-        #     if not chunk:
-        #         break
-        #     data += chunk
-
         message = await get_message(reader, writer)
-        
-        
         
         if message == 'exit':
             break
