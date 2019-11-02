@@ -1,25 +1,35 @@
 import asyncio
+async def get_message(reader, writer):
+    user_input = input("user input:")
+    
+    writer.write(user_input.encode(encoding='UTF-8'))
+    return user_input
 
 async def tcp_echo_client():
-    reader, writer = await asyncio.open_connection('127.0.0.1', 8080, loop=loop)
+    reader, writer = await asyncio.open_connection('127.0.0.1', 8080)
 
-    while True:        
+    while True:
         data = await reader.read(1000)
-        print(data.decode())
-        message = input()
+        print(f"{data.decode()}")
+
+        # print(f'{data.decode()!r}')
+
+        # data = bytearray()
+        # while True:
+        #     chunk = await reader.read(1000)
+        #     print(data.decode())
+        #     if not chunk:
+        #         break
+        #     data += chunk
+
+        message = await get_message(reader, writer)
+        
+        
         
         if message == 'exit':
             break
 
-        writer.write(message.encode(encoding='UTF-8'))
-        
-        data = await reader.readline()
-        print(data.decode())
     print('Close the connection')
     writer.close()
 
-message = "Hello world"
-loop = asyncio.get_event_loop()
-loop.run_until_complete(tcp_echo_client(message, loop))
-loop.close()
 asyncio.run(tcp_echo_client())
