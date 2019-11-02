@@ -30,76 +30,80 @@ class User:
     
         os.chdir(self.fd)
 
-    def change_folder(self, name, privilege, folder, reader, writer):
-        
+    def change_folder(self, name, privilege, folder):
         # some non existing directory 
         path = os.path.join(self.fd, folder)
-        cwd = str(os.getcwd())
+        # cwd = str(os.getcwd())
         # trying to insert to flase directory 
         if self.fd == f"{init_cwd}\\root":
             if privilege == "admin" or "User" == folder :
                 try:
                     os.chdir(path) 
-                    writer.write(name.encode(encoding='UTF-8'))
-                    writer.write(">>".encode(encoding='UTF-8'))
-                    writer.write(path.encode(encoding='UTF-8'))
+                    # # writer.write(name.encode(encoding='UTF-8'))
+                    # # writer.write(">>".encode(encoding='UTF-8'))
+                    # writer.write(path.encode(encoding='UTF-8'))
+                    
                     self.fd = os.path.join(self.fd, folder)
-                    print(self.fd)
+                    print('if self.fd', self.fd)
                     cwd = str(os.getcwd())
-                    print(f'try cwd = {cwd}')
+                    return path
                 # Caching the exception     
                 except: 
-                    writer.write("Error:The folder does not exist. Try again\n\r".encode(encoding='UTF-8'))    
+                    error = "Error:The folder does not exist. Try again\n\r"  
+                    return error
             else:
-                writer.write("Error: Your are not allowed to enter this folder.\n\r".encode(encoding='UTF-8'))
+                error = "Error: Your are not allowed to enter this folder.\n\r"  
+                return error
 
         elif self.fd == f"{init_cwd}\\root\\User":
             if name == folder or privilege == "admin":
                 try:
                     os.chdir(path) 
-                    writer.write(name.encode(encoding='UTF-8'))
-                    writer.write(">>".encode(encoding='UTF-8'))
-                    writer.write(path.encode(encoding='UTF-8'))
+                    # writer.write(name.encode(encoding='UTF-8'))
+                    # writer.write(">>".encode(encoding='UTF-8'))
+                    # writer.write(path.encode(encoding='UTF-8'))
+                    
                     self.fd = os.path.join(self.fd, folder)
-                    print(self.fd)
-                    cwd = str(os.getcwd())
-                    print(f'try cwd = {cwd}')
+                    print('self.fd:',self.fd)
+                    # cwd = str(os.getcwd())
+                    return path
                 # Caching the exception     
                 except: 
-                    writer.write("Error:The folder does not exist. Try again\n\r".encode(encoding='UTF-8'))
-                    print("Something wrong with specified Exception- ")
+                    error = "Error:The folder does not exist. Try again\n\r"  
+                    return error
             else:
-                writer.write("Error: Your are not allowed to enter this folder.\n\r".encode(encoding='UTF-8'))
-
+                error = "Error: Your are not allowed to enter this folder.\n\r"  
+                return error
         else:
             try:
                 os.chdir(path) 
-                writer.write(name.encode(encoding='UTF-8'))
-                writer.write(">>".encode(encoding='UTF-8'))
-                writer.write(path.encode(encoding='UTF-8'))
+                # writer.write(name.encode(encoding='UTF-8'))
+                # writer.write(">>".encode(encoding='UTF-8'))
+                # writer.write(path.encode(encoding='UTF-8'))
+                
                 self.fd = os.path.join(self.fd, folder)
-                print(self.fd)
                 cwd = str(os.getcwd())
-                print(f'try cwd = {cwd}')
+                return path
             # Caching the exception     
             except: 
-                writer.write("Error:The folder does not exist. Try again\n\r".encode(encoding='UTF-8'))
-                print("Something wrong with specified Exception- ")  
+                error = "Error:The folder does not exist. Try again\n\r"  
+                return error 
     
-    def back_folder(self,name, privilege, reader, writer):
+    def back_folder(self,name, privilege):
 
         if self.fd != f"{init_cwd}\\root":
             pathX = self.fd
             self.fd = os.path.dirname(pathX)
-            writer.write(name.encode(encoding='UTF-8'))
-            writer.write(">>".encode(encoding='UTF-8'))
-            writer.write(self.fd.encode(encoding='UTF-8'))
+            # writer.write(name.encode(encoding='UTF-8'))
+            # writer.write(">>".encode(encoding='UTF-8'))
+            # writer.write(self.fd.encode(encoding='UTF-8'))
 
         else:
-            writer.write("Error:You are in root directory\n\r".encode(encoding='UTF-8'))
-            writer.write(name.encode(encoding='UTF-8'))
-            writer.write(">>".encode(encoding='UTF-8'))
-            writer.write(self.fd.encode(encoding='UTF-8')) 
+            # writer.write("Error:You are in root directory\n\r".encode(encoding='UTF-8'))
+            # writer.write(name.encode(encoding='UTF-8'))
+            # writer.write(">>".encode(encoding='UTF-8'))
+            # writer.write(self.fd.encode(encoding='UTF-8')) 
+            pass
     
     def create_folder(self, name, privilege, folder, reader, writer):
         
@@ -117,8 +121,11 @@ class User:
         else:
             writer.write("Error: Your are not allowed to create folder here.\n\r".encode(encoding='UTF-8'))
 
-    def print_list(self, name, reader, writer):
+    def print_list(self, name):
+        return_msg = ''
         dir_file_list = os.listdir(self.fd)
+        print('self.fd:',self.fd)
+        print('dir_file_list:', dir_file_list)
         for i in range(len(dir_file_list)):
             path = os.path.join(self.fd, dir_file_list[i])
             size = 0
@@ -127,9 +134,8 @@ class User:
                 size = os.path.getsize(path)  
                 date = os.path.getctime(path)
 
-                writer.write(f'{dir_file_list[i]}'.encode(encoding='UTF-8'))
-                writer.write(f'\tsize:{str(size)}'.encode(encoding='UTF-8'))
-                writer.write(f'\tdate:{time.ctime(date)}'.encode(encoding='UTF-8'))
+                info_msg = (f'{dir_file_list[i]}\tsize:{str(size)}\tdate:{time.ctime(date)}\n\r')
+                return_msg += str(info_msg)
 
             elif os.path.isdir(path):
                 total_size = 0
@@ -140,11 +146,11 @@ class User:
                     for f in files:
                         fp = os.path.join(path, f)
                         total_size += os.path.getsize(fp)
-                writer.write(f'{dir_file_list[i]}'.encode(encoding='UTF-8'))
-                writer.write(f'\tsize:{str(total_size)}'.encode(encoding='UTF-8'))
-                writer.write(f'\tdate:{time.ctime(date)}'.encode(encoding='UTF-8'))
 
-            writer.write('\n\r'.encode(encoding='UTF-8'))
+                info_msg = (f'{dir_file_list[i]}\t\tsize:{str(total_size)}\tdate:{time.ctime(date)}\n\r')
+                return_msg += str(info_msg)
+
+        return return_msg
 
     def read_file(self, file_name, read_flag, reader, writer):
         if self.read_command_count == 0 and not read_flag:

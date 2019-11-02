@@ -129,16 +129,30 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     break
 
         elif message[0] == 'commands':
-            writer.write('\n\rmkdir--------create a new folder'.encode(encoding='UTF-8'))
-            writer.write('\n\rcd-----------change folder'.encode(encoding='UTF-8'))
-            writer.write('\n\rls-----------list directory contents'.encode(encoding='UTF-8'))
-            writer.write('\n\rreadfile-----read data from the file'.encode(encoding='UTF-8'))
-            writer.write('\n\rwritefile----write the data to the end of the file'.encode(encoding='UTF-8'))
-            writer.write('\n\rlogin--------log in the user'.encode(encoding='UTF-8'))
-            writer.write('\n\rregister-----register a new user'.encode(encoding='UTF-8'))
-            writer.write('\n\rdel----------delete a user from the server'.encode(encoding='UTF-8'))
-            writer.write('\n\rquit---------log out the user, close the connection, close the application'.encode(encoding='UTF-8'))
-            writer.write('\n\rcommands-----print information about all available commands'.encode(encoding='UTF-8'))
+            help_message = """
+            mkdir--------create a new folder
+            cd-----------change folder
+            ls-----------list directory contents
+            readfile-----read data from the file
+            writefile----write the data to the end of the file
+            login--------log in the user
+            register-----register a new user
+            del----------delete a user from the server
+            quit---------log out the user, close the connection, close the application
+            commands-----information about all available commands
+            """
+            writer.write(f'\n\r{help_message}'.encode())
+
+            # writer.write('\n\rmkdir--------create a new folder'.encode())
+            # writer.write('\n\rcd-----------change folder'.encode())
+            # writer.write('\n\rls-----------list directory contents'.encode())
+            # writer.write('\n\rreadfile-----read data from the file'.encode())
+            # writer.write('\n\rwritefile----write the data to the end of the file'.encode())
+            # writer.write('\n\rlogin--------log in the user'.encode())
+            # writer.write('\n\rregister-----register a new user'.encode())
+            # writer.write('\n\rdel----------delete a user from the server'.encode())
+            # writer.write('\n\rquit---------log out the user, close the connection, close the application'.encode())
+            # writer.write('\n\rcommands-----information about all available commands'.encode())
             await writer.drain()
 
         elif message[0] == 'mkdir':
@@ -163,17 +177,18 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 if len(message) == 2:
                     folder = message[1]
                     restricted_char = string.punctuation
-                    print(restricted_char)
                     
                 else:
                     writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    await writer.drain()
                     writer.write('\n\rUse: cd <folder_name> or cd .. to go back'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
 
                 if folder == '..':
                     if username_check(name, signedin):
-                        client.back_folder(name, privilege, reader, writer)
+                        writer.write(client.back_folder(name, privilege).encode(encoding='UTF-8'))
+                        await writer.drain()
                         break
 
                 for char in restricted_char:
@@ -183,8 +198,10 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         await writer.drain()
                         cd_flag = True
                         break
+
                 if cd_flag == False:
-                    client.change_folder(name, privilege, folder, reader, writer)         
+                    writer.write(client.change_folder(name, privilege, folder).encode(encoding='UTF-8'))
+                    await writer.drain()                          
                     break
                 break
 
@@ -192,10 +209,14 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             while True:
                 if len(message) == 1:
                     if username_check(name, signedin):
-                        client.print_list(name, reader, writer)
+
+                        writer.write(client.print_list(name).encode(encoding='UTF-8'))
+                        await writer.drain()
+
                         break
                 else:
                     writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    await writer.drain()
                     writer.write('\n\rUse: ls'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
