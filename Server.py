@@ -1,3 +1,4 @@
+"""The module containing connection to given IP address and port, basic loop of application"""
 import asyncio
 import random
 from service import User
@@ -9,29 +10,31 @@ import signal
 import string
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-name_list = [""]   # report3- we should define some unacceptable or restrict chararcter
+name_list = [""]
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
 signedin = []
 addr_port = []
-
 created_folder = {}
 path = str(os.getcwd())
 with open(f'{path}/root/Server/signed-info.json', 'w') as file:
     json.dump(signedin, file)
 async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    """
+    Gives the sent message from client in a loop, if the message is quit the loop will be stopped. 
+    The received message will be splited and message[0] will be compare with given known commands 
+    and in each part it will be made a user/admin instance and the related function will be called 
+    by this instance and get the answer from service module and sent it to Client.py
+    """
     global path 
     # 'peername' is remote address connected to
     addr = writer.get_extra_info('peername')
-    message = f'{addr!r} is connected !!!!' # !r calls the __repr__ method
+    message = f'{addr!r} is connected !!!!'
     print(message)
     pre_file_name = ""
     with open(f'{path}/root/Server/client-info.json', 'r') as file:
                 registered = json.load(file)
     with open(f'{path}/root/Server/signed-info.json', 'r') as file:
                 signedin = json.load(file)
-    # try:
-  
     writer.write('\n\rYou are conected to Pytonista Server'.encode(encoding='UTF-8'))
     writer.write('\n\rPlease select login or register (login/register)'.encode(encoding='UTF-8'))
     writer.write('>>'.encode(encoding='UTF-8'))
@@ -41,7 +44,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         data = await reader.read(1000)
         msg = data.decode().strip()
         message = msg.split()
-        # await asyncio.sleep(random.randint(0, 10))
 
         if message[0] == 'register':
             reg_Flag = False
@@ -242,7 +244,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     break
 
                 if username_check(name, signedin):
-                    if pre_file_name == file_name: # "" == file_name
+                    if pre_file_name == file_name:
                         read_flag = True
 
                     writer.write(client.read_file(file_name, read_flag).encode(encoding='UTF-8'))
@@ -287,28 +289,13 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         await writer.drain()
     writer.close()
 
-    # except:
-    #     print("CONNECTION LOST")
-    #     signedin.remove(name)
-    #     with open(f'{path}/root/Server/signed-info.json', 'w') as file:
-    #         json.dump(signedin, file)
-    #     close_msg = f'{addr!r} wants to close the connection.'
-    #     print(close_msg)
-    #     writer.close()
-    
-    
 async def main():
+    """
+    This function sets the connection to given IP address and port and calls call_back function. 
+    Make the server ready to listen.
+    """
     server = await asyncio.start_server(send_back, '127.0.0.1', 8080)
     addr = server.sockets[0].getsockname()
-    # try:
-    #     addr = server.sockets[0].getsockname()
-    # except socket.error:
-    #     addr = None
-    # try:
-    #     addr.bind(('127.0.0.1', 8080))
-    # except socket.error:
-    #     addr.close()
-    
     print(f'Serving on {addr}')
     async with server:
         await server.serve_forever()
@@ -318,12 +305,6 @@ def username_check(name1, name2):
         if name1 == name2[i]:
             return True
     return False
-
-# def get_first_path():
-#     if path_flag == 1:
-#         path = str(os.getcwd())
-#         path_flag = 2   
-#     return path
 
 asyncio.run(main())
 

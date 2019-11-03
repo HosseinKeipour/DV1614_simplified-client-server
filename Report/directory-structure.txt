@@ -1,0 +1,23 @@
+
+_The file structure is given below, we have two kind of client, users and admins. when a client registered, the entered privilege decides where the client's folder
+ will be made. admins will have a folder in the Admin folder and users will have a folder in User folder. The created folder will be named <username>.
+_We also make a info.txt in each folder, so there would not be any problem when we commit changes.
+_In Server folder we have two json file. In signed-info.json the name of singed in clients will be saved and in registered-info.json the registered clients will be 
+saved with their passwords and privileges.
+_The signed-info.json is a list of client names.
+_The registered-info.json is a dictionary with 3 keys: client_name, client_password and client_privilege. The values are list of names, password and privileges
+
+Root
+|---Admin
+       |---admin1
+		|---info.txt   
+       |---admin2
+		|---info.txt 
+|---User
+       |---user1
+		|---info.txt 
+       |---user2
+		|---info.txt 
+|---server
+       |---signed-info.json
+       |---registered-info.json
