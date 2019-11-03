@@ -10,7 +10,6 @@ import signal
 import string
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
-name_list = [""]
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
 signedin = []
 addr_port = []
@@ -20,26 +19,26 @@ with open(f'{path}/root/Server/signed-info.json', 'w') as file:
     json.dump(signedin, file)
 async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     """
-    Gives the sent message from client in a loop, if the message is quit the loop will be stopped. 
-    The received message will be splited and message[0] will be compare with given known commands 
-    and in each part it will be made a user/admin instance and the related function will be called 
+    Gives the sent message from client in a loop, if the message is quit the loop will be stopped.
+    The received message will be splited and message[0] will be compare with given known commands
+    and in each part it will be made a user/admin instance and the related function will be called
     by this instance and get the answer from service module and sent it to Client.py
     """
-    global path 
+    global path
     # 'peername' is remote address connected to
     addr = writer.get_extra_info('peername')
     message = f'{addr!r} is connected !!!!'
     print(message)
     pre_file_name = ""
     with open(f'{path}/root/Server/client-info.json', 'r') as file:
-                registered = json.load(file)
+        registered = json.load(file)
     with open(f'{path}/root/Server/signed-info.json', 'r') as file:
-                signedin = json.load(file)
+        signedin = json.load(file)
     writer.write('\n\rYou are conected to Pytonista Server'.encode(encoding='UTF-8'))
     writer.write('\n\rPlease select login or register (login/register)'.encode(encoding='UTF-8'))
     writer.write('>>'.encode(encoding='UTF-8'))
     await writer.drain()
-    
+
     while True:
         data = await reader.read(1000)
         msg = data.decode().strip()
@@ -66,7 +65,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     writer.write('\n\rUse: register <username> <password> <privilege>'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
-                
                 if username_check(name, registered['client_name']) == False and password != "" and (privilege == "user" or privilege == "admin"):
                     registered['client_name'].append(name)
                     registered['client_password'].append(password)
@@ -91,12 +89,11 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         writer.write('\n\rError: The selected username, password or privilege is not correct.'.encode(encoding='UTF-8'))
                         await writer.drain()
                         break
-        
         elif message[0] == 'login':
             while True:
                 if len(message) == 3:
-                        name = message[1]
-                        password = message[2]
+                    name = message[1]
+                    password = message[2]
                 else:
                     writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
                     await writer.drain()
@@ -117,7 +114,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         writer.write('\n\rError:The password is incorrect. Please try again.'.encode(encoding='UTF-8'))
                         await writer.drain()
                         break
-                    
                     index = registered['client_name'].index(name)
                     privilege = registered['client_privilege'][index]
 
@@ -170,7 +166,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 if len(message) == 2:
                     folder = message[1]
                     restricted_char = string.punctuation
-                    
+
                 else:
                     writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
                     await writer.drain()
@@ -194,7 +190,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
                 if cd_flag == False:
                     writer.write(client.change_folder(name, privilege, folder).encode(encoding='UTF-8'))
-                    await writer.drain()                          
+                    await writer.drain()       
                     break
                 break
 
@@ -213,7 +209,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     writer.write('\n\rUse: ls'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
-            
+
         elif message[0] == 'write':
             while True:
                 if len(message) >= 2:
@@ -228,7 +224,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 if username_check(name, signedin):
                     client.write_file(name, file_name, user_input)
                     break
-        
+
         elif message[0] == 'read':
             read_flag = False
             while True:
@@ -263,18 +259,18 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     writer.write('\n\rUse: del <username> <admin_password>'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
-                
+
                 if username_check(name, signedin):
-                    writer.write(client.delete(name, password, privilege, user_name, input_password, signedin).encode(encoding='UTF-8'))
+                    writer.write(client.delete(name, user_name, input_password, signedin).encode(encoding='UTF-8'))
                     await writer.drain()
                     break
-                
+
         elif message[0] == 'quit':
             with open(f'{path}/root/Server/signed-info.json', 'r') as file:
-                signedin = json.load(file)            
-            
+                signedin = json.load(file)
+
             signedin.remove(name)
-            
+
             with open(f'{path}/root/Server/signed-info.json', 'w') as file:
                 json.dump(signedin, file)
 
@@ -291,7 +287,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
 async def main():
     """
-    This function sets the connection to given IP address and port and calls call_back function. 
+    This function sets the connection to given IP address and port and calls call_back function.
     Make the server ready to listen.
     """
     server = await asyncio.start_server(send_back, '127.0.0.1', 8080)
@@ -301,10 +297,9 @@ async def main():
         await server.serve_forever()
 
 def username_check(name1, name2):
-    for i in range(0, len(name2)):   
+    for i in range(0, len(name2)):
         if name1 == name2[i]:
             return True
     return False
 
 asyncio.run(main())
-
