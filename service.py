@@ -1,12 +1,10 @@
-""" 
-This file contains the classes User, Admin, UserClassTestingStepOne which in order handling the request 
-from server which is sent by a user, the request from server which is sent by a admin and tests chosen 
-for testing service functions
-""" 
+"""
+This file contains the classes User, Admin, UserClassTestingStepOne which in order
+handling the request from server which is sent by a user, the request from server
+which is sent by a admin and tests chosen for testing service functions
+"""
 import os
-import asyncio
 import json
-import sys
 import time
 import shutil
 import unittest
@@ -18,42 +16,44 @@ class User:
 
     Attributes:
     ------------------------
-    name: string
-        The user name
+        name: string
+            The user name
 
-    password: string
-        The user password
+        password: string
+            The user password
 
-    privilege: string
-        The user privilege
+        privilege: string
+            The user privilege
 
     Methods:
     ------------------------
-    change_folder(name, privilege, folder):
-        Move the current working directory for the current user to the specified folder residing in the 
-        current folder
+        change_folder(name, privilege, folder):
+            Move the current working directory for the current user to the specified folder
+            residing in the current folder
 
-    back_folder(name, privilege):
-        walk back the previous folder
+        back_folder(name, privilege):
+            walk back the previous folder
 
-    create_folder(name, privilege, folder):
-        Create a new folder with the specified <name> in the current working directory for the user 
-        issuing the request
+        create_folder(name, privilege, folder):
+            Create a new folder with the specified <name> in the current working
+            directory for the user issuing the request
 
-    print_list(name):
-        Print all files and folders in the current working directory for the user issuing the request
+        print_list(name):
+            Print all files and folders in the current working directory for the
+            user issuing the request
 
-    read_file(file_name, read_flag):
-        Read data from the file <name> in the current working directory for the user issuing the request
-        and return the first hundred characters in it
+        read_file(file_name, read_flag):
+            Read data from the file <name> in the current working directory for
+            the user issuing the request and return the first hundred characters in it
 
-    Write_file(name, file_name, user_input):
-        Write the data in <input> to the end of the file <name> in the current working directory for the
-        user issuing the request, starting on a new line.  If no file exists with the given name_file, 
-        a new file will be created in the current working directory for the user
+        Write_file(name, file_name, user_input):
+            Write the data in <input> to the end of the file <name> in the current
+            working directory for the user issuing the request, starting on a new line.
+            If no file exists with the given name_file, a new file will be created in the
+            current working directory for the user
     """
 
-    def __init__(self, name,  password, privilege):
+    def __init__(self, name, password, privilege):
         """
         Initialize the user.
 
@@ -73,46 +73,47 @@ class User:
         self.privilege = privilege
         self._index = 0
         self.user_list = []
-        self.each_user = {'name': self.name, 'password': self.__password, 'privilege': self.privilege} 
+        self.each_user = {'name': self.name, 'password': self.__password,
+                          'privilege': self.privilege}
         self.user_list.append(self.each_user)
         self.login_directory = f"root/{privilege}/{name}"
         self.fd = os.path.join(init_cwd, self.login_directory)
         self.read_command_count = 0
         with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
-            self.registered = json.load(file)     
+            self.registered = json.load(file)
         os.chdir(self.fd)
 
     def change_folder(self, name, privilege, folder):
         """
-        Move the current working directory for the current user to the specified folder residing in the 
-        current folder
+        Move the current working directory for the current user to the specified folder
+        residing in the current folder
         """
         path = os.path.join(self.fd, folder)
         if self.fd == f"{init_cwd}\\root":
-            if privilege == "admin" or "User" == folder :
+            if privilege == "admin" or "User" == folder:
                 try:
-                    os.chdir(path) 
+                    os.chdir(path)
                     self.fd = os.path.join(self.fd, folder)
                     cwd = str(os.getcwd())
-                    return path     
-                except: 
-                    error = "Error:The folder does not exist. Try again\n\r"  
+                    return path
+                except:
+                    error = "Error:The folder does not exist. Try again\n\r"
                     return error
             else:
-                error = "Error: Your are not allowed to enter this folder.\n\r"  
+                error = "Error: Your are not allowed to enter this folder.\n\r"
                 return error
 
         elif self.fd == f"{init_cwd}\\root\\User":
             if name == folder or privilege == "admin":
                 try:
-                    os.chdir(path) 
+                    os.chdir(path)
                     self.fd = os.path.join(self.fd, folder)
-                    return path     
-                except: 
-                    error = "Error:The folder does not exist. Try again\n\r"  
+                    return path
+                except:
+                    error = "Error:The folder does not exist. Try again\n\r"
                     return error
             else:
-                error = "Error: Your are not allowed to enter this folder.\n\r"  
+                error = "Error: Your are not allowed to enter this folder.\n\r"
                 return error
         else:
             try:
@@ -120,11 +121,11 @@ class User:
                 self.fd = os.path.join(self.fd, folder)
                 cwd = str(os.getcwd())
                 return path
-            except: 
-                error = "Error:The folder does not exist. Try again\n\r"  
-                return error 
-    
-    def back_folder(self,name, privilege):
+            except:
+                error = "Error:The folder does not exist. Try again\n\r"
+                return error
+
+    def back_folder(self, name, privilege):
         """walk back the previous folder"""
         if self.fd != f"{init_cwd}\\root":
             pathX = self.fd
@@ -134,11 +135,11 @@ class User:
         else:
             msg = f"Error:You are in root directory\n\r{self.fd}"
             return msg
-    
+
     def create_folder(self, name, privilege, folder):
         """
-        Create a new folder with the specified <name> in the current working directory for the user 
-        issuing the request
+        Create a new folder with the specified <name> in the current working directory
+        for the user issuing the request
         """
         is_path = self.fd.find(f'{init_cwd}\\root/user/{name}')
         if is_path >= 0 or privilege == "admin":
@@ -154,7 +155,8 @@ class User:
 
     def print_list(self, name):
         """
-        Print all files and folders in the current working directory for the user issuing the request
+        Print all files and folders in the current working directory for the user
+        issuing the request
         """
         return_msg = ''
         dir_file_list = os.listdir(self.fd)
@@ -163,7 +165,7 @@ class User:
             size = 0
             date = 0
             if os.path.isfile(path):
-                size = os.path.getsize(path)  
+                size = os.path.getsize(path)
                 date = os.path.getctime(path)
                 info_msg = (f'{dir_file_list[i]}\t\tsize:{str(size)}\tdate:{time.ctime(date)}\n\r')
                 return_msg += str(info_msg)
@@ -181,10 +183,10 @@ class User:
 
     def read_file(self, file_name, read_flag):
         """
-        Read data from the file <name> in the current working directory for the user issuing the request
-        and return the first hundred characters in it
-        """ 
-        if file_name == "": 
+        Read data from the file <name> in the current working directory for the
+        user issuing the request and return the first hundred characters in it
+        """
+        if file_name == "":
             self.read_command_count = 0
             return "Current file is closed"
         if self.read_command_count == 0 and not read_flag:
@@ -193,7 +195,7 @@ class User:
                 with open(f"{self.fd}/{file_name}.txt") as file:
                     text_file = "".join(line.rstrip() for line in file)
                     charr = text_file[first:first+100]
-                    first += 100   
+                    first += 100
             except FileNotFoundError as error:
                 msg = f'{error}.\n\r'
                 return msg
@@ -210,7 +212,7 @@ class User:
                     first += 100
             except FileNotFoundError as error:
                 msg = f"{error}.\n\r"
-                return msg                
+                return msg
             else:
                 msg = f'\n\r{charr}\n\r'
                 self.read_command_count += 1
@@ -222,7 +224,7 @@ class User:
                 with open(f"{self.fd}/{file_name}.txt") as file:
                     text_file = "".join(line.rstrip() for line in file)
                     charr = text_file[first:first+100]
-                    first += 100  
+                    first += 100
             except FileNotFoundError as error:
                 msg = f'{error}.\n\r'
                 return msg
@@ -233,9 +235,10 @@ class User:
 
     def write_file(self, name, file_name, user_input):
         """
-        Write the data in <input> to the end of the file <name> in the current working directory for the
-        user issuing the request, starting on a new line.  If no file exists with the given name_file, 
-        a new file will be created in the current working directory for the user
+        Write the data in <input> to the end of the file <name> in the current
+        working directory for the user issuing the request, starting on a new line.
+        If no file exists with the given name_file, a new file will be created in the
+        current working directory for the user
         """
         if user_input == '':
             with open(f'{file_name}.txt', 'w') as writefile:
@@ -246,34 +249,35 @@ class User:
 
 class Admin(User):
     """
-    A service for users just with admin privilege. This class inherit from user class, so it uses from all of its methods, 
-    including its constructor. So the attributes of admin class is the same as user class.
+    A service for users just with admin privilege. This class inherit from user class,
+    so it uses from all of its methods,including its constructor. So the attributes of
+    admin class is the same as user class.
 
     Methods:
     ------------------------
-    delete(name, password, privilege, user_name, input_password, signedin):
+    delete(name, user_name, input_password, signedin):
         Delete the user conforming with <username> from the server
     """
 
-    def delete(self, name, password, privilege, user_name, input_password, signedin):
+    def delete(self, name, user_name, input_password, signedin):
         """Delete the user conforming with <username> from the server"""
-   
+
         if user_name in self.registered['client_name']:
             index = self.registered['client_name'].index(name)
             admin_password = self.registered['client_password'][index]
-        
-            if admin_password ==  input_password:
+
+            if admin_password == input_password:
                 user_name_index = self.registered['client_name'].index(user_name)
                 user_name_privilege = self.registered['client_privilege'][user_name_index]
-                
+
                 with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
-                    self.registered = json.load(file)                
+                    self.registered = json.load(file) 
                 del self.registered['client_name'][user_name_index]
                 del self.registered['client_password'][user_name_index]
                 del self.registered['client_privilege'][user_name_index]
                 with open(f'{init_cwd}/root/Server/client-info.json', 'w') as file:
-                    json.dump(self.registered, file)                
-                
+                    json.dump(self.registered, file)
+
                 with open(f'{init_cwd}/root/Server/signed-info.json', 'r') as file:
                     signedin = json.load(file)
                 try:
@@ -294,7 +298,7 @@ class Admin(User):
                     return msg
                                
                 with open(f'{init_cwd}/root/Server/client-info.json', 'w') as file:
-                    json.dump(self.registered, file)    
+                    json.dump(self.registered, file)
             else:
                 msg = f'\n\rThe password is wrong.\n\r'
                 return msg
@@ -304,8 +308,9 @@ class Admin(User):
 
 class UserClassTestingStepOne(unittest.TestCase):
     """Handles the first part of tests"""
-    
+
     def test_create_folder(self):
+        """This is a test for create_folder functions"""
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -320,15 +325,16 @@ class UserClassTestingStepOne(unittest.TestCase):
         result = client.create_folder("user1", "admin", "folder1")
 
         self.assertEqual(result,
-                        expected_result,
-                        f'Expected the answer to be : {expected_result}')
-        
+                         expected_result,
+                         f'Expected the answer to be : {expected_result}')
+
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
         del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
         shutil.rmtree(del_path)
 
     def test_change_folder(self):
+        """This is a test for change_folder functions"""
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -341,11 +347,11 @@ class UserClassTestingStepOne(unittest.TestCase):
         client = Admin(name, password, privilege)
 
         expected_result = os.path.join(init_cwd, f"root/{privilege}/{name}\\{folder}")
-        result = client.change_folder(name, privilege, folder)        
-        
+        result = client.change_folder(name, privilege, folder)
+
         self.assertEqual(result,
-                        expected_result,
-                        f'Expected the answer to be : {expected_result}')
+                         expected_result,
+                         f'Expected the answer to be : {expected_result}')
 
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
@@ -353,6 +359,7 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)
 
     def test_back_folder(self):
+        """This is a test for back_folder functions"""
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -376,6 +383,7 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)
 
     def test_print_list(self):
+        """This is a test for print_list functions"""
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -409,10 +417,11 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)
 
     def test_read_files_first_100_char(self):
+        """This is a test for read_files functions"""
         name = "user1"
         password = "pass1"
         privilege = "admin"
-        folder = "testfolder1"
+        # folder = "testfolder1"
         file_name = "testfile1"
         read_flag = False           #'False' means it is first time to read a file and 'True' means it is second or more times
         self.login_directory = f"root/{privilege}/{name}"
@@ -446,6 +455,7 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)
 
     def test_write_file(self):
+        """This is a test for write_file functions"""
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -478,6 +488,9 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)      
 
     def test_delete_as_an_admin(self):
+        """
+        This is a test for delete functions
+        """
         name = "user1"
         password = "pass1"
         input_password = "pass1"
@@ -525,7 +538,7 @@ class UserClassTestingStepOne(unittest.TestCase):
 
         expected_result = f'\n\rThe {user_name} successfuly has been deleted.\n\r'
         print(f'expected_result:{expected_result}')
-        result = client.delete(name, password, privilege, user_name, input_password, signedin)
+        result = client.delete(name, user_name, input_password, signedin)
 
         self.assertEqual(result,
             expected_result,
