@@ -73,21 +73,14 @@ class User:
                 return error 
     
     def back_folder(self,name, privilege):
-
+        # print(f'self.fd inside func={self.fd}')
         if self.fd != f"{init_cwd}\\root":
             pathX = self.fd
             self.fd = os.path.dirname(pathX)
-            # writer.write(name.encode(encoding='UTF-8'))
-            # writer.write(">>".encode(encoding='UTF-8'))
-            # writer.write(self.fd.encode(encoding='UTF-8'))
             msg = self.fd
             return msg
 
         else:
-            # writer.write("Error:You are in root directory\n\r".encode(encoding='UTF-8'))
-            # writer.write(name.encode(encoding='UTF-8'))
-            # writer.write(">>".encode(encoding='UTF-8'))
-            # writer.write(self.fd.encode(encoding='UTF-8'))
             msg = f"Error:You are in root directory\n\r{self.fd}"
             return msg
     
@@ -291,7 +284,7 @@ class Admin(User):
 class UserClassTestingStepOne(unittest.TestCase):
     """Handles the first part of tests"""
     # registered = {'client_name': ["soheil", "vahid"], 'client_password': ["soheil", "vahid"], 'client_privilege': ["admin", "user"]}
-
+    
     def test_create_folder(self):
         name = "user1"
         password = "pass1"
@@ -305,7 +298,6 @@ class UserClassTestingStepOne(unittest.TestCase):
 
         expected_result = "The folder has been made successfully\n\r"
         result = client.create_folder("user1", "admin", "folder1")
-        # print(result)
 
         self.assertEqual(result,
                         expected_result,
@@ -340,30 +332,151 @@ class UserClassTestingStepOne(unittest.TestCase):
         del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
         shutil.rmtree(del_path)
 
-    # def test_back_folder(self):
-    #     name = "user1"
-    #     password = "pass1"
-    #     privilege = "admin"
-    #     # folder = "testfolder1"
-    #     self.login_directory = f"root/{privilege}/{name}"
-    #     self.fd = os.path.join(init_cwd, self.login_directory)
-    #     # path = os.path.join(self.fd, folder) #init_cwd+f"root/{privilege}/{name}"+
-    #     os.makedirs(self.fd)
+    def test_back_folder(self):
+        name = "user1"
+        password = "pass1"
+        privilege = "admin"
+        self.login_directory = f"root/{privilege}/{name}"
+        self.fd = os.path.join(init_cwd, self.login_directory)
+        os.makedirs(self.fd)
 
-    #     client = Admin(name, password, privilege)
+        client = Admin(name, password, privilege)
 
-    #     chdir_path = os.path.join(init_cwd, "root")
-    #     print(f'****{chdir_path}')
-    #     os.chdir(chdir_path)
-    #     expected_result = f"Error:You are in root directory\n\r{self.fd}"
-    #     print(f'****{expected_result}')
-    #     result = client.back_folder(name, privilege)
-    #     print(f'****{result}')
+        self.fd = f"{init_cwd}\\root"
+        expected_result = f"{init_cwd}\\root/{privilege}"
+        result = client.back_folder(name, privilege)
 
-    #     # self.assertEqual(result,
-    #     #                 expected_result,
-    #     #                 f'Expected the answer to be : {expected_result}')
+        self.assertEqual(result,
+                        expected_result,
+                        f'Expected the answer to be : {expected_result}')
 
+        chdir_path = os.path.join(init_cwd, f"root/{privilege}")
+        os.chdir(chdir_path)
+        del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
+        shutil.rmtree(del_path)
+
+    def test_print_list(self):
+        name = "user1"
+        password = "pass1"
+        privilege = "admin"
+        folder = "testfolder1"
+        self.login_directory = f"root/{privilege}/{name}"
+        self.fd = os.path.join(init_cwd, self.login_directory)
+        path = os.path.join(self.fd, folder)
+
+        os.makedirs(path)
+        os.chdir(self.fd)
+        with open('testfile1.txt', 'w') as writefile:    #Find proper command
+                writefile.writelines("""It was the White Rabbit, trotting slowly back again, and looking
+                                     anxiously about as it went, as if it had lost something; and she 
+                                     heard it muttering to itself `The Duchess! The Duchess! Oh my dear
+                                     paws! Oh my fur and whiskers! She'll get me executed, as sure as 
+                                     ferrets are ferrets! Where CAN I have dropped them, I wonder?""")
+
+        client = Admin(name, password, privilege)
+
+        expected_results = ["testfile1.txt", "testfolder1"]
+        # print(f'\n\rThese files should be in the list\nexpected_result:\n\r{expected_results}')
+        result = client.print_list(name)
+        # print(f'list result:\n\r{result}')
+
+        for expected_result in expected_results:
+            self.assertIn(expected_result,
+                            result,
+                            f'Expected the answer contains the following files : {expected_result}')
+
+        chdir_path = os.path.join(init_cwd, f"root/{privilege}")
+        os.chdir(chdir_path)
+        del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
+        shutil.rmtree(del_path)
+
+    def test_read_files_first_100_char(self):
+        name = "user1"
+        password = "pass1"
+        privilege = "admin"
+        folder = "testfolder1"
+        file_name = "testfile1"
+        read_flag = False           #'False' means it is first time to read a file and 'True' means it is second or more times
+        self.login_directory = f"root/{privilege}/{name}"
+        self.fd = os.path.join(init_cwd, self.login_directory)
+        path = os.path.join(self.fd, name)
+
+        os.makedirs(path)
+        os.chdir(self.fd)
+
+        with open(f'{file_name}.txt', 'w') as writefile:    #Find proper command
+                writefile.writelines("""It was the White Rabbit, trotting slowly back again, and looking
+                                     anxiously about as it went, as if it had lost something; and she 
+                                     heard it muttering to itself `The Duchess! The Duchess! Oh my dear
+                                     paws! Oh my fur and whiskers! She'll get me executed, as sure as 
+                                     ferrets are ferrets! Where CAN I have dropped them, I wonder?""")
+
+        client = Admin(name, password, privilege)
+
+        expected_result = "\n\rIt was the White Rabbit, trotting slowly back again, and looking\n\r"
+        print(f'expected_result:{expected_result}')
+        result = client.read_file(file_name, read_flag)
+        print(f'command  result:{result}')
+
+        self.assertEqual(result,
+                        expected_result,
+                        f'Expected the answer to be : {expected_result}')
+
+        chdir_path = os.path.join(init_cwd, f"root/{privilege}")
+        os.chdir(chdir_path)
+        del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
+        shutil.rmtree(del_path)
+
+    def test_write_file(self):
+        name = "user1"
+        password = "pass1"
+        privilege = "admin"
+        file_name = "testfile1"
+        user_input = "This is a test file."
+        self.login_directory = f"root/{privilege}/{name}"
+        self.fd = os.path.join(init_cwd, self.login_directory)
+        path = os.path.join(self.fd, name)
+        
+        os.makedirs(path)
+        os.chdir(self.fd)
+        
+
+        client = Admin(name, password, privilege)
+        client.write_file(name, file_name, user_input)
+
+        expected_result = user_input
+        # print(f'expected_result:{expected_result}')
+
+        with open(f"{self.fd}/{file_name}.txt") as file:
+            text_file = "".join(line.rstrip() for line in file)
+            result = text_file[:]
+        # print(f'command  result:{result}')
+
+        self.assertEqual(result,
+                        expected_result,
+                        f'Expected the answer to be : {expected_result}')
+
+        chdir_path = os.path.join(init_cwd, f"root/{privilege}")
+        os.chdir(chdir_path)
+        del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
+        shutil.rmtree(del_path)      
+
+    def test_delete_as_an_admin(self):
+        name = "user1"
+        password = "pass1"
+        privilege = "admin"
+        file_name = "testfile1"
+        user_input = "This is a test file."
+        self.login_directory = f"root/{privilege}/{name}"
+        self.fd = os.path.join(init_cwd, self.login_directory)
+        path = os.path.join(self.fd, name)
+        
+        os.makedirs(path)
+        os.chdir(self.fd)
+        
+
+        client = Admin(name, password, privilege)
+        client.write_file(name, file_name, user_input)
 
 if __name__ == "__main__":
     unittest.main()
