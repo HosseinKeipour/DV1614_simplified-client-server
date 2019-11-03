@@ -7,7 +7,6 @@ import shutil
 import unittest
 init_cwd = str(os.getcwd())
 
-
 class User:
     def __init__(self, name,  password, privilege):
         self.name = name
@@ -310,36 +309,61 @@ class UserClassTestingStepOne(unittest.TestCase):
 
         self.assertEqual(result,
                         expected_result,
-                        'Expected the answer to be : "The folder has been made successfully\n\r"')
+                        f'Expected the answer to be : {expected_result}')
         
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
         del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
         shutil.rmtree(del_path)
 
-    # def test_change_folder(self):
+    def test_change_folder(self):
+        name = "user1"
+        password = "pass1"
+        privilege = "admin"
+        folder = "testfolder1"
+        self.login_directory = f"root/{privilege}/{name}"
+        self.fd = os.path.join(init_cwd, self.login_directory)
+        path = os.path.join(self.fd, folder) #init_cwd+f"root/{privilege}/{name}"+
+        os.makedirs(path)
+
+        client = Admin(name, password, privilege)
+
+        expected_result = os.path.join(init_cwd, f"root/{privilege}/{name}\\{folder}")
+        result = client.change_folder(name, privilege, folder)        
+        
+        self.assertEqual(result,
+                        expected_result,
+                        f'Expected the answer to be : {expected_result}')
+
+        chdir_path = os.path.join(init_cwd, f"root/{privilege}")
+        os.chdir(chdir_path)
+        del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
+        shutil.rmtree(del_path)
+
+    # def test_back_folder(self):
     #     name = "user1"
     #     password = "pass1"
     #     privilege = "admin"
+    #     # folder = "testfolder1"
     #     self.login_directory = f"root/{privilege}/{name}"
     #     self.fd = os.path.join(init_cwd, self.login_directory)
-    #     path = os.path.join(self.fd, name)
-    #     os.makedirs(path)
+    #     # path = os.path.join(self.fd, folder) #init_cwd+f"root/{privilege}/{name}"+
+    #     os.makedirs(self.fd)
 
     #     client = Admin(name, password, privilege)
 
-    #     expected_result = os.path.join(init_cwd, f"root/{privilege}/folder1")
-    #     result = client.change_folder("user1", "admin", "folder1")
-        
-        
-    #     self.assertEqual(result,
-    #                     expected_result,
-    #                     f'Expected the answer to be : {os.path.join(self.fd, folder)}')
-
-    #     chdir_path = os.path.join(init_cwd, f"root/{privilege}")
+    #     chdir_path = os.path.join(init_cwd, "root")
+    #     print(f'****{chdir_path}')
     #     os.chdir(chdir_path)
-    #     del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
-    #     shutil.rmtree(del_path)
+    #     expected_result = f"Error:You are in root directory\n\r{self.fd}"
+    #     print(f'****{expected_result}')
+    #     result = client.back_folder(name, privilege)
+    #     print(f'****{result}')
+
+    #     # self.assertEqual(result,
+    #     #                 expected_result,
+    #     #                 f'Expected the answer to be : {expected_result}')
+
 
 if __name__ == "__main__":
     unittest.main()
