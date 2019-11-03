@@ -138,24 +138,48 @@ class User:
         return return_msg
 
     def read_file(self, file_name, read_flag):
-        if file_name == "": # input is: read ""
-            # writer.write('file_name == ""'.encode(encoding='UTF-8'))
+        """method to read file which read data from the file <name>
+        There are four conditions in this method.
+
+        The first condition is related to when read command implement without 
+        any file name.
+
+        The second condition is related to when in the current working
+        directory for the user issuing the request and return the first
+        hundred characters in it.
+
+        The third if condition is related to when two users use the command 
+        "read_file" but with different files, then subsequent calls done by 
+        these users are to handle the specific user's file and not any other file.
+
+        The forth if condition is related to  each subsequent call by the same 
+        client is to return the next hundred characters in the file, up until 
+        all characters are read. 
+
+        
+        Parameters
+        ---------------
+        file_name: str
+        Input that is to be used
+        read_flag: boolean
+        
+        ---------------
+        TypeError
+        FileNotFoundError
+        """
+        
+        if file_name == "": 
             self.read_command_count = 0
             return "Current file is closed"
 
         if self.read_command_count == 0 and not read_flag: # run 1: read alice
-            # writer.write('if self.read_command_count == 0 and not read_flag:'.encode(encoding='UTF-8'))
             try:
                 first = self.read_command_count*100
-                # print(f"{self.fd}/{file_name}")
                 with open(f"{self.fd}/{file_name}.txt") as file:
                     text_file = "".join(line.rstrip() for line in file)
                     charr = text_file[first:first+100]
-                    # writer.write('\n\r'.encode(encoding='UTF-8'))
-                    # writer.write(f'{charr}\n\r'.encode(encoding='UTF-8'))
                     first += 100   
             except FileNotFoundError as error:
-                # writer.write(f"{error}.\n\r".encode(encoding='UTF-8'))
                 msg = f'{error}.\n\r'
                 return msg
             else:
@@ -163,19 +187,14 @@ class User:
                 self.read_command_count += 1
                 return msg
 
-        if read_flag: # input is: read ""
-            # writer.write('read_flag:'.encode(encoding='UTF-8'))
+        if read_flag:
             try:
                 first = self.read_command_count*100
-                # print(f"{self.fd}/{file_name}")
                 with open(f"{self.fd}/{file_name}.txt") as file:
                     text_file = "".join(line.rstrip() for line in file)
                     charr = text_file[first:first+100]
-                    # writer.write('\n\r'.encode(encoding='UTF-8'))
-                    # writer.write(f'{charr}\n\r'.encode(encoding='UTF-8'))
                     first += 100
             except FileNotFoundError as error:
-                # writer.write(f"{error}.\n\r".encode(encoding='UTF-8'))
                 msg = f"{error}.\n\r"
                 return msg                
             else:
@@ -184,19 +203,14 @@ class User:
                 return msg
 
         if self.read_command_count != 0 and not read_flag: # run 1 another file : read bob
-            # writer.write('self.read_command_count != 0 and not read_flag:'.encode(encoding='UTF-8'))
             self.read_command_count = 0
             try:
                 first = self.read_command_count*100
-                # print(f"{self.fd}/{file_name}")
                 with open(f"{self.fd}/{file_name}.txt") as file:
                     text_file = "".join(line.rstrip() for line in file)
                     charr = text_file[first:first+100]
-                    # writer.write('\n\r'.encode(encoding='UTF-8'))
-                    # writer.write(f'{charr}\n\r'.encode(encoding='UTF-8'))
                     first += 100  
             except FileNotFoundError as error:
-                # writer.write(f"{error}.\n\r".encode(encoding='UTF-8'))
                 msg = f'{error}.\n\r'
                 return msg
             else:
@@ -204,11 +218,6 @@ class User:
                 self.read_command_count += 1
                 return msg
 
-        # self.read_command_count += 1 
-        # if file_name == "": # input is: read ""
-        #     # writer.write('file_name == ""'.encode(encoding='UTF-8'))
-        #     self.read_command_count = 0
-        #     return ""
 
     def write_file(self, name, file_name, user_input):
         if user_input == '':
