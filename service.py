@@ -1,3 +1,8 @@
+""" 
+This file contains the classes User, Admin, UserClassTestingStepOne which in order handling the request 
+from server which is sent by a user, the request from server which is sent by a admin and tests chosen 
+for testing service functions
+""" 
 import os
 import asyncio
 import json
@@ -8,33 +13,81 @@ import unittest
 init_cwd = str(os.getcwd())
 
 class User:
+    """
+    A services for all users, a user or an admin.
+
+    Attributes:
+    ------------------------
+    name: string
+        The user name
+
+    password: string
+        The user password
+
+    privilege: string
+        The user privilege
+
+    Methods:
+    ------------------------
+    change_folder(name, privilege, folder):
+        Move the current working directory for the current user to the specified folder residing in the 
+        current folder
+
+    back_folder(name, privilege):
+        walk back the previous folder
+
+    create_folder(name, privilege, folder):
+        Create a new folder with the specified <name> in the current working directory for the user 
+        issuing the request
+
+    print_list(name):
+        Print all files and folders in the current working directory for the user issuing the request
+
+    read_file(file_name, read_flag):
+        Read data from the file <name> in the current working directory for the user issuing the request
+        and return the first hundred characters in it
+
+    Write_file(name, file_name, user_input):
+        Write the data in <input> to the end of the file <name> in the current working directory for the
+        user issuing the request, starting on a new line.  If no file exists with the given name_file, 
+        a new file will be created in the current working directory for the user
+    """
+
     def __init__(self, name,  password, privilege):
+        """
+        Initialize the user.
+
+        Parameters:
+        ------------------------------------------
+        name: string
+            The user name
+
+        password: string
+            The user password
+
+        privilege: string
+            The user privilege
+        """
         self.name = name
         self.__password = password
         self.privilege = privilege
-        
-        
         self._index = 0
         self.user_list = []
         self.each_user = {'name': self.name, 'password': self.__password, 'privilege': self.privilege} 
         self.user_list.append(self.each_user)
-
         self.login_directory = f"root/{privilege}/{name}"
-        
         self.fd = os.path.join(init_cwd, self.login_directory)
-
         self.read_command_count = 0
-
         with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
             self.registered = json.load(file)     
-    
         os.chdir(self.fd)
 
     def change_folder(self, name, privilege, folder):
-        # some non existing directory 
+        """
+        Move the current working directory for the current user to the specified folder residing in the 
+        current folder
+        """
         path = os.path.join(self.fd, folder)
-        # cwd = str(os.getcwd())
-        # trying to insert to flase directory 
         if self.fd == f"{init_cwd}\\root":
             if privilege == "admin" or "User" == folder :
                 try:
@@ -54,7 +107,6 @@ class User:
                 try:
                     os.chdir(path) 
                     self.fd = os.path.join(self.fd, folder)
-                    # cwd = str(os.getcwd())
                     return path     
                 except: 
                     error = "Error:The folder does not exist. Try again\n\r"  
@@ -73,21 +125,22 @@ class User:
                 return error 
     
     def back_folder(self,name, privilege):
-        # print(f'self.fd inside func={self.fd}')
+        """walk back the previous folder"""
         if self.fd != f"{init_cwd}\\root":
             pathX = self.fd
             self.fd = os.path.dirname(pathX)
             msg = self.fd
             return msg
-
         else:
             msg = f"Error:You are in root directory\n\r{self.fd}"
             return msg
     
     def create_folder(self, name, privilege, folder):
-        
+        """
+        Create a new folder with the specified <name> in the current working directory for the user 
+        issuing the request
+        """
         is_path = self.fd.find(f'{init_cwd}\\root/user/{name}')
-
         if is_path >= 0 or privilege == "admin":
             path = os.path.join(self.fd, folder)
             try:
@@ -100,9 +153,11 @@ class User:
             return "Error: Your are not allowed to create folder here.\n\r"
 
     def print_list(self, name):
+        """
+        Print all files and folders in the current working directory for the user issuing the request
+        """
         return_msg = ''
         dir_file_list = os.listdir(self.fd)
-
         for i in range(len(dir_file_list)):
             path = os.path.join(self.fd, dir_file_list[i])
             size = 0
@@ -110,61 +165,29 @@ class User:
             if os.path.isfile(path):
                 size = os.path.getsize(path)  
                 date = os.path.getctime(path)
-
                 info_msg = (f'{dir_file_list[i]}\t\tsize:{str(size)}\tdate:{time.ctime(date)}\n\r')
                 return_msg += str(info_msg)
-
             elif os.path.isdir(path):
                 total_size = 0
-                start_path = os.path.join(self.fd, dir_file_list[i]) # To get size of current directory
+                start_path = os.path.join(self.fd, dir_file_list[i])
                 date = os.path.getctime(path)
-
                 for path, dirs, files in os.walk(start_path):
                     for f in files:
                         fp = os.path.join(path, f)
                         total_size += os.path.getsize(fp)
-
                 info_msg = (f'{dir_file_list[i]}\t\tsize:{str(total_size)}\tdate:{time.ctime(date)}\n\r')
                 return_msg += str(info_msg)
-
         return return_msg
 
     def read_file(self, file_name, read_flag):
-        """method to read file which read data from the file <name>
-        There are four conditions in this method.
-
-        The first condition is related to when read command implement without 
-        any file name.
-
-        The second condition is related to when in the current working
-        directory for the user issuing the request and return the first
-        hundred characters in it.
-
-        The third if condition is related to when two users use the command 
-        "read_file" but with different files, then subsequent calls done by 
-        these users are to handle the specific user's file and not any other file.
-
-        The forth if condition is related to  each subsequent call by the same 
-        client is to return the next hundred characters in the file, up until 
-        all characters are read. 
-
-        
-        Parameters
-        ---------------
-        file_name: str
-        Input that is to be used
-        read_flag: boolean
-        
-        ---------------
-        TypeError
-        FileNotFoundError
         """
-        
+        Read data from the file <name> in the current working directory for the user issuing the request
+        and return the first hundred characters in it
+        """ 
         if file_name == "": 
             self.read_command_count = 0
             return "Current file is closed"
-
-        if self.read_command_count == 0 and not read_flag: # run 1: read alice
+        if self.read_command_count == 0 and not read_flag:
             try:
                 first = self.read_command_count*100
                 with open(f"{self.fd}/{file_name}.txt") as file:
@@ -178,7 +201,6 @@ class User:
                 msg = f'\n\r{charr}\n\r'
                 self.read_command_count += 1
                 return msg
-
         if read_flag:
             try:
                 first = self.read_command_count*100
@@ -193,8 +215,7 @@ class User:
                 msg = f'\n\r{charr}\n\r'
                 self.read_command_count += 1
                 return msg
-
-        if self.read_command_count != 0 and not read_flag: # run 1 another file : read bob
+        if self.read_command_count != 0 and not read_flag:
             self.read_command_count = 0
             try:
                 first = self.read_command_count*100
@@ -210,42 +231,37 @@ class User:
                 self.read_command_count += 1
                 return msg
 
-
     def write_file(self, name, file_name, user_input):
+        """
+        Write the data in <input> to the end of the file <name> in the current working directory for the
+        user issuing the request, starting on a new line.  If no file exists with the given name_file, 
+        a new file will be created in the current working directory for the user
+        """
         if user_input == '':
-            with open(f'{file_name}.txt', 'w') as writefile:    #Find proper command
+            with open(f'{file_name}.txt', 'w') as writefile:
                 writefile.writelines(f'{user_input}')
         else:
             with open(f'{file_name}.txt', 'a') as writefile:
                 writefile.writelines(f'{user_input}\n')
 
-    def register(self, username, password, privileges):
-        pass
-
-    def login(self, username, password):
-        pass
-    
-    def __iter__(self):
-        return self
-
-    def __len__(self):
-        return len(self.user_list)
-
-    def __next__(self):
-        if len(self) == self._index:
-            self._index = 0
-            raise StopIteration
-        self._index += 1
-        return self.user_list[self._index-1]
-
 class Admin(User):
+    """
+    A service for users just with admin privilege. This class inherit from user class, so it uses from all of its methods, 
+    including its constructor. So the attributes of admin class is the same as user class.
+
+    Methods:
+    ------------------------
+    delete(name, password, privilege, user_name, input_password, signedin):
+        Delete the user conforming with <username> from the server
+    """
 
     def delete(self, name, password, privilege, user_name, input_password, signedin):
+        """Delete the user conforming with <username> from the server"""
    
         if user_name in self.registered['client_name']:
             index = self.registered['client_name'].index(name)
             admin_password = self.registered['client_password'][index]
-            
+        
             if admin_password ==  input_password:
                 user_name_index = self.registered['client_name'].index(user_name)
                 user_name_privilege = self.registered['client_privilege'][user_name_index]
@@ -270,9 +286,7 @@ class Admin(User):
                 del_path = os.path.join(init_cwd, f"root/{user_name_privilege}/{user_name}")
                 try:
                     shutil.rmtree(del_path)
-                    # writer.write(f'\n\rThe {user_name} successfuly has been deleted.\n\r'.encode(encoding='UTF-8'))
                 except:
-                    # writer.write(f'\n\rError : Error while deleting.\n\r'.encode(encoding='UTF-8'))
                     msg = f'\n\rError : Error while deleting.\n\r'
                     return msg
                 else:
@@ -282,17 +296,14 @@ class Admin(User):
                 with open(f'{init_cwd}/root/Server/client-info.json', 'w') as file:
                     json.dump(self.registered, file)    
             else:
-                # writer.write(f'\n\rThe password is wrong.\n\r'.encode(encoding='UTF-8'))
                 msg = f'\n\rThe password is wrong.\n\r'
                 return msg
         else:
-            # writer.write(f'\n\rThe username does not exist.\n\r'.encode(encoding='UTF-8'))
             msg = f'\n\rThe username does not exist.\n\r'
             return msg
 
 class UserClassTestingStepOne(unittest.TestCase):
     """Handles the first part of tests"""
-    # registered = {'client_name': ["soheil", "vahid"], 'client_password': ["soheil", "vahid"], 'client_privilege': ["admin", "user"]}
     
     def test_create_folder(self):
         name = "user1"
