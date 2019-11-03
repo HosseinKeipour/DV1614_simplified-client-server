@@ -416,44 +416,6 @@ class UserClassTestingStepOne(unittest.TestCase):
         del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
         shutil.rmtree(del_path)
 
-    def test_read_files_first_100_char(self):
-        """This is a test for read_files functions"""
-        name = "user1"
-        password = "pass1"
-        privilege = "admin"
-        # folder = "testfolder1"
-        file_name = "testfile1"
-        read_flag = False           #'False' means it is first time to read a file and 'True' means it is second or more times
-        self.login_directory = f"root/{privilege}/{name}"
-        self.fd = os.path.join(init_cwd, self.login_directory)
-        path = os.path.join(self.fd, name)
-
-        os.makedirs(path)
-        os.chdir(self.fd)
-
-        with open(f'{file_name}.txt', 'w') as writefile:
-                writefile.writelines("""It was the White Rabbit, trotting slowly back again, and looking
-                                     anxiously about as it went, as if it had lost something; and she 
-                                     heard it muttering to itself `The Duchess! The Duchess! Oh my dear
-                                     paws! Oh my fur and whiskers! She'll get me executed, as sure as 
-                                     ferrets are ferrets! Where CAN I have dropped them, I wonder?""")
-
-        client = Admin(name, password, privilege)
-
-        expected_result = "\n\rIt was the White Rabbit, trotting slowly back again, and looking\n\r"
-        print(f'expected_result:{expected_result}')
-        result = client.read_file(file_name, read_flag)
-        print(f'command  result:{result}')
-
-        self.assertEqual(result,
-                        expected_result,
-                        f'Expected the answer to be : {expected_result}')
-
-        chdir_path = os.path.join(init_cwd, f"root/{privilege}")
-        os.chdir(chdir_path)
-        del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
-        shutil.rmtree(del_path)
-
     def test_write_file(self):
         """This is a test for write_file functions"""
         name = "user1"
@@ -563,6 +525,44 @@ class UserClassTestingStepOne(unittest.TestCase):
         os.chdir(chdir_path)
         del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
         shutil.rmtree(del_path) 
+
+    def test_read_files_first_100_char(self):
+        """This is a test for read_files functions"""
+        name = "user1"
+        password = "pass1"
+        privilege = "admin"
+        # folder = "testfolder1"
+        file_name = "testfile1"
+        read_flag = False           #'False' means it is first time to read a file and 'True' means it is second or more times
+        self.login_directory = f"root/{privilege}/{name}"
+        self.fd = os.path.join(init_cwd, self.login_directory)
+        path = os.path.join(self.fd, name)
+
+        os.makedirs(path)
+        os.chdir(self.fd)
+
+        with open(f'{file_name}.txt', 'w') as writefile:
+                writefile.writelines("""It was the White Rabbit, trotting slowly back again, and looking
+                                     anxiously about as it went, as if it had lost something; and she 
+                                     heard it muttering to itself `The Duchess! The Duchess! Oh my dear
+                                     paws! Oh my fur and whiskers! She'll get me executed, as sure as 
+                                     ferrets are ferrets! Where CAN I have dropped them, I wonder?""")
+
+        client = Admin(name, password, privilege)
+
+        expected_result = "\n\rIt was the White Rabbit, trotting slowly back again, and looking\n\r"
+        print(f'expected_result:{expected_result}')
+        result = client.read_file(file_name, read_flag)
+        print(f'command  result:{result}')
+
+        self.assertEqual(result,
+                        expected_result,
+                        f'Expected the answer to be : {expected_result}')
+
+        chdir_path = os.path.join(init_cwd, f"root/{privilege}")
+        os.chdir(chdir_path)
+        del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
+        shutil.rmtree(del_path)
 
 if __name__ == "__main__":
     unittest.main()

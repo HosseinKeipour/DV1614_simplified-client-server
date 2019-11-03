@@ -89,6 +89,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         writer.write('\n\rError: The selected username, password or privilege is not correct.'.encode(encoding='UTF-8'))
                         await writer.drain()
                         break
+
         elif message[0] == 'login':
             while True:
                 if len(message) == 3:
@@ -129,16 +130,16 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
         elif message[0] == 'commands':
             help_message = """
-            mkdir--------create a new folder
-            cd-----------change folder
-            ls-----------list directory contents
-            read---------read data from the file
-            write--------write the data to the end of the file
-            login--------log in the user
-            register-----register a new user
-            del----------delete a user from the server
-            quit---------log out the user, close the connection, close the application
-            commands-----information about all available commands
+            mkdir <name>-----create a new folder
+            cd <name>--------change folder
+            ls--------list directory contents
+            read <file_name>------read data from the file
+            write <file_name> <input>-----write the data to the end of the file
+            login <username> <password>-----log in the user
+            register <username> <password> <privileges>--register a new user
+            del <del_username> <admin_password>-------delete a user from the server
+            quit------log out the user, close the connection, close the application
+            commands--information about all available commands
             """
             writer.write(f'\n\r{help_message}'.encode())
             await writer.drain()
