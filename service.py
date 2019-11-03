@@ -277,7 +277,7 @@ class Admin(User):
                 with open(f'{init_cwd}/root/Server/signed-info.json', 'r') as file:
                     signedin = json.load(file)
                 try:
-                    signedin.remove(f'{user_name}')
+                    signedin.remove(user_name)
                 except ValueError:
                     pass
                 with open(f'{init_cwd}/root/Server/signed-info.json', 'w') as file:
@@ -396,9 +396,7 @@ class UserClassTestingStepOne(unittest.TestCase):
         client = Admin(name, password, privilege)
 
         expected_results = ["testfile1.txt", "testfolder1"]
-        # print(f'\n\rThese files should be in the list\nexpected_result:\n\r{expected_results}')
         result = client.print_list(name)
-        # print(f'list result:\n\r{result}')
 
         for expected_result in expected_results:
             self.assertIn(expected_result,
@@ -424,7 +422,7 @@ class UserClassTestingStepOne(unittest.TestCase):
         os.makedirs(path)
         os.chdir(self.fd)
 
-        with open(f'{file_name}.txt', 'w') as writefile:    #Find proper command
+        with open(f'{file_name}.txt', 'w') as writefile:
                 writefile.writelines("""It was the White Rabbit, trotting slowly back again, and looking
                                      anxiously about as it went, as if it had lost something; and she 
                                      heard it muttering to itself `The Duchess! The Duchess! Oh my dear
@@ -465,12 +463,10 @@ class UserClassTestingStepOne(unittest.TestCase):
         client.write_file(name, file_name, user_input)
 
         expected_result = user_input
-        # print(f'expected_result:{expected_result}')
 
         with open(f"{self.fd}/{file_name}.txt") as file:
             text_file = "".join(line.rstrip() for line in file)
             result = text_file[:]
-        # print(f'command  result:{result}')
 
         self.assertEqual(result,
                         expected_result,
@@ -484,19 +480,76 @@ class UserClassTestingStepOne(unittest.TestCase):
     def test_delete_as_an_admin(self):
         name = "user1"
         password = "pass1"
+        input_password = "pass1"
         privilege = "admin"
-        file_name = "testfile1"
+
+        user_name = "user2"
+        user_pass = "pass2"
+        user_privelege = "admin"
+
+        file_name = "testfile2"
         user_input = "This is a test file."
         self.login_directory = f"root/{privilege}/{name}"
         self.fd = os.path.join(init_cwd, self.login_directory)
-        path = os.path.join(self.fd, name)
-        
-        os.makedirs(path)
-        os.chdir(self.fd)
-        
 
+        signedin = ["user1", "user2"]
+        with open(f'{init_cwd}/root/Server/signed-info.json', 'w') as file:
+            json.dump(signedin, file)
+        
+        with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
+            registered = json.load(file)
+
+        registered['client_name'].append(name)
+        registered['client_password'].append(password)
+        registered['client_privilege'].append(privilege)
+
+        registered['client_name'].append(user_name)
+        registered['client_password'].append(user_pass)
+        registered['client_privilege'].append(user_privelege)
+
+        with open(f'{init_cwd}/root/Server/client-info.json', 'w') as file:
+            json.dump(registered, file)
+
+        user1_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
+        user2_path = os.path.join(init_cwd, f"root/{privilege}/{user_name}")
+        
+        os.makedirs(user1_path)
+        os.makedirs(user2_path)
+
+        os.chdir(os.path.join(init_cwd, f"root/{privilege}/user2"))
+
+        with open(f'{file_name}.txt', 'w') as writefile:
+                writefile.writelines(user_input)
         client = Admin(name, password, privilege)
-        client.write_file(name, file_name, user_input)
+
+
+        expected_result = f'\n\rThe {user_name} successfuly has been deleted.\n\r'
+        print(f'expected_result:{expected_result}')
+        result = client.delete(name, password, privilege, user_name, input_password, signedin)
+
+        self.assertEqual(result,
+            expected_result,
+            f'Expected the answer to be : {expected_result}')
+        
+        with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
+            registered = json.load(file)
+        user_name_index = registered['client_name'].index(name)
+        del registered['client_name'][user_name_index]
+        del registered['client_password'][user_name_index]
+        del registered['client_privilege'][user_name_index]
+        with open(f'{init_cwd}/root/Server/client-info.json', 'w') as file:
+            json.dump(registered, file)
+
+        with open(f'{init_cwd}/root/Server/signed-info.json', 'r') as file:
+            signedin = json.load(file)
+        signedin.remove(name)
+        with open(f'{init_cwd}/root/Server/signed-info.json', 'w') as file:
+            json.dump(signedin, file)
+
+        chdir_path = os.path.join(init_cwd, f"root/{privilege}")
+        os.chdir(chdir_path)
+        del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
+        shutil.rmtree(del_path) 
 
 if __name__ == "__main__":
     unittest.main()
