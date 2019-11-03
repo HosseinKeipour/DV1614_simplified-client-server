@@ -4,6 +4,7 @@ import json
 import sys
 import time
 import shutil
+import unittest
 init_cwd = str(os.getcwd())
 
 
@@ -287,3 +288,58 @@ class Admin(User):
             # writer.write(f'\n\rThe username does not exist.\n\r'.encode(encoding='UTF-8'))
             msg = f'\n\rThe username does not exist.\n\r'
             return msg
+
+class UserClassTestingStepOne(unittest.TestCase):
+    """Handles the first part of tests"""
+    # registered = {'client_name': ["soheil", "vahid"], 'client_password': ["soheil", "vahid"], 'client_privilege': ["admin", "user"]}
+
+    def test_create_folder(self):
+        name = "user1"
+        password = "pass1"
+        privilege = "admin"
+        self.login_directory = f"root/{privilege}/{name}"
+        self.fd = os.path.join(init_cwd, self.login_directory)
+        path = os.path.join(self.fd, name)
+        os.makedirs(path)
+
+        client = Admin(name, password, privilege)
+
+        expected_result = "The folder has been made successfully\n\r"
+        result = client.create_folder("user1", "admin", "folder1")
+        # print(result)
+
+        self.assertEqual(result,
+                        expected_result,
+                        'Expected the answer to be : "The folder has been made successfully\n\r"')
+        
+        chdir_path = os.path.join(init_cwd, f"root/{privilege}")
+        os.chdir(chdir_path)
+        del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
+        shutil.rmtree(del_path)
+
+    # def test_change_folder(self):
+    #     name = "user1"
+    #     password = "pass1"
+    #     privilege = "admin"
+    #     self.login_directory = f"root/{privilege}/{name}"
+    #     self.fd = os.path.join(init_cwd, self.login_directory)
+    #     path = os.path.join(self.fd, name)
+    #     os.makedirs(path)
+
+    #     client = Admin(name, password, privilege)
+
+    #     expected_result = os.path.join(init_cwd, f"root/{privilege}/folder1")
+    #     result = client.change_folder("user1", "admin", "folder1")
+        
+        
+    #     self.assertEqual(result,
+    #                     expected_result,
+    #                     f'Expected the answer to be : {os.path.join(self.fd, folder)}')
+
+    #     chdir_path = os.path.join(init_cwd, f"root/{privilege}")
+    #     os.chdir(chdir_path)
+    #     del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
+    #     shutil.rmtree(del_path)
+
+if __name__ == "__main__":
+    unittest.main()
