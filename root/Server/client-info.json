@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"client_name": ["nas", "shi", "K"], "client_password": ["nas", "shi", "K"], "client_privilege": ["admin", "admin", "admin"]}
+=======
+{"client_name": ["nas", "shi"], "client_password": ["nas", "shi"], "client_privilege": ["admin", "admin"]}
+>>>>>>> 618a64132de55b58ad78e4765e65eae57f0d765c
