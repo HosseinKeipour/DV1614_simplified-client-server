@@ -1,5 +1,0 @@
-nasi nasi nasi nasi nasi ansi ansi ansielif message[0] == 'mkdir':
-  while True:
-if len(message) == 2:folder = message[1]
-        
-        this is added now

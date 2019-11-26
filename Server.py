@@ -12,6 +12,7 @@ import string
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
 signedin = []
+signedin_port = []
 addr_port = []
 created_folder = {}
 path = str(os.getcwd())
@@ -35,7 +36,9 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     with open(f'{path}/root/Server/signed-info.json', 'r') as file:
         signedin = json.load(file)
     writer.write('\n\rYou are conected to Pytonista Server'.encode(encoding='UTF-8'))
+    await writer.drain()
     writer.write('\n\rPlease select login or register (login/register)'.encode(encoding='UTF-8'))
+    await writer.drain()
     writer.write('>>'.encode(encoding='UTF-8'))
     await writer.drain()
 
@@ -43,7 +46,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         data = await reader.read(1000)
         msg = data.decode().strip()
         message = msg.split()
-
+        print(f"Server Side Receive:{message}")
         if message[0] == 'register':
             reg_Flag = False
             while True:
@@ -62,6 +65,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         break
                 else:
                     writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                    await writer.drain()
                     writer.write('\n\rUse: register <username> <password> <privilege>'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
@@ -111,6 +115,12 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         signedin.append(name)
                         with open(f'{path}/root/Server/signed-info.json', 'w') as file:
                             json.dump(signedin, file)
+
+                        # with open(f'{path}/root/Server/signedin_port.json', 'r') as file:
+                        #     signedin = json.load(file)
+                        # signedin_port.append(addr[1])
+                        # with open(f'{path}/root/Server/signedin_port.json', 'w') as file:
+                        #     json.dump(signedin, file)
                     else:
                         writer.write('\n\rError:The password is incorrect. Please try again.'.encode(encoding='UTF-8'))
                         await writer.drain()
@@ -128,156 +138,198 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     await writer.drain()
                     break
 
-        elif message[0] == 'commands':
-            help_message = """
-            mkdir <name>-----create a new folder
-            cd <name>--------change folder
-            ls--------list directory contents
-            read <file_name>------read data from the file
-            write <file_name> <input>-----write the data to the end of the file
-            login <username> <password>-----log in the user
-            register <username> <password> <privileges>--register a new user
-            del <del_username> <admin_password>-------delete a user from the server
-            quit------log out the user, close the connection, close the application
-            commands--information about all available commands
-            """
-            writer.write(f'\n\r{help_message}'.encode())
-            await writer.drain()
+        # elif message[0] == 'commands':
+        #     if name in signedin:
+        #         help_message = """
+        #         create_folder <name>---------------------------create a new folder
+        #         change_folder <name>---------------------------change folder
+        #         list-------------------------------------------list directory contents
+        #         read_file <file_name>--------------------------read data from the file
+        #         write_file <file_name> <input>-----------------write the data to the end of the file
+        #         login <username> <password>--------------------log in the user
+        #         register <username> <password> <privileges>----register a new user
+        #         delete <del_username> <admin_password>---------delete a user from the server
+        #         quit------------log out the user, close the connection, close the application
+        #         commands--------------------------------------information about all available commands
+        #         commands issued-------------------------------all commands issued are issued
+        #         commands clear--------------------------------all commands issued are cleared
+        #         """
+        #         writer.write(f'\n\r{help_message}'.encode())
+        #         await writer.drain()
+        #     else:
+        #         writer.write(f'\n\rError: You should log in first'.encode())
+        #         await writer.drain()
 
-        elif message[0] == 'mkdir':
-            while True:
-                if len(message) == 2:
-                    folder = message[1]
-                else:
-                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    writer.write('\n\rUse: mkdir <folder_name>'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    break
-                if username_check(name, signedin):
-                    writer.write(client.create_folder(name, privilege, folder).encode(encoding='UTF-8'))
-                    break
-                else:
-                    writer.write('\n\rError: You should sign in first'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    break
-
-        elif message[0] == 'cd':
-            while True:
-                if len(message) == 2:
-                    folder = message[1]
-                    restricted_char = string.punctuation
-
-                else:
-                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    writer.write('\n\rUse: cd <folder_name> or cd .. to go back'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    break
-
-                if folder == '..':
+        elif message[0] == 'create_folder':
+            if name in signedin:
+                while True:
+                    if len(message) == 2:
+                        folder = message[1]
+                    else:
+                        writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        writer.write('\n\rUse: create_folder <folder_name>'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        break
                     if username_check(name, signedin):
-                        writer.write(client.back_folder(name, privilege).encode(encoding='UTF-8'))
+                        writer.write(client.create_folder(name, privilege, folder).encode(encoding='UTF-8'))
+                        break
+                    else:
+                        writer.write('\n\rError: You should sign in first'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        break
+            else:
+                writer.write(f'\n\rError: You should log in first'.encode())
+                await writer.drain()
+
+        elif message[0] == 'change_folder':
+            if name in signedin:
+                while True:
+                    if len(message) == 2:
+                        folder = message[1]
+                        restricted_char = string.punctuation
+
+                    else:
+                        writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        writer.write('\n\rUse: change_folder <folder_name> or change_folder .. to go back'.encode(encoding='UTF-8'))
                         await writer.drain()
                         break
 
-                for char in restricted_char:
-                    cd_flag = False
-                    if char in folder:
-                        writer.write('\n\rError:The folder does not exist. Try again!!!!.'.encode(encoding='UTF-8'))
-                        await writer.drain()
-                        cd_flag = True
-                        break
+                    if folder == '..':
+                        if username_check(name, signedin):
+                            writer.write(client.back_folder(name, privilege).encode(encoding='UTF-8'))
+                            await writer.drain()
+                            break
 
-                if cd_flag == False:
-                    writer.write(client.change_folder(name, privilege, folder).encode(encoding='UTF-8'))
-                    await writer.drain()       
+                    for char in restricted_char:
+                        cd_flag = False
+                        if char in folder:
+                            writer.write('\n\rError:The folder does not exist. Try again!!!!.'.encode(encoding='UTF-8'))
+                            await writer.drain()
+                            cd_flag = True
+                            break
+
+                    if cd_flag == False:
+                        writer.write(client.change_folder(name, privilege, folder).encode(encoding='UTF-8'))
+                        await writer.drain()       
+                        break
                     break
-                break
+            else:
+                writer.write(f'\n\rError: You should log in first'.encode())
+                await writer.drain()
 
-        elif message[0] == 'ls':
-            while True:
-                if len(message) == 1:
+        elif message[0] == 'list':
+            if name in signedin:
+                while True:
+                    if len(message) == 1:
+                        if username_check(name, signedin):
+
+                            writer.write(client.print_list(name).encode(encoding='UTF-8'))
+                            await writer.drain()
+
+                            break
+                    else:
+                        writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        writer.write('\n\rUse: list'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        break
+            else:
+                writer.write(f'\n\rError: You should log in first'.encode())
+                await writer.drain()   
+
+        elif message[0] == 'write_file':
+            if name in signedin:
+                while True:
+                    if len(message) >= 2:
+                        file_name = message[1]
+                        user_input = ' '.join(message[2:])
+                    else:
+                        writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        writer.write('\n\rUse: write_file <filename> <input>'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        break
                     if username_check(name, signedin):
-
-                        writer.write(client.print_list(name).encode(encoding='UTF-8'))
-                        await writer.drain()
-
+                        client.write_file(name, file_name, user_input)
                         break
-                else:
-                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    writer.write('\n\rUse: ls'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    break
+            else:
+                writer.write(f'\n\rError: You should log in first'.encode())
+                await writer.drain()
 
-        elif message[0] == 'write':
-            while True:
-                if len(message) >= 2:
-                    file_name = message[1]
-                    user_input = ' '.join(message[2:])
-                else:
-                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    writer.write('\n\rUse: write <filename> <input>'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    break
-                if username_check(name, signedin):
-                    client.write_file(name, file_name, user_input)
-                    break
+        elif message[0] == 'read_file':
+            if name in signedin:
+                read_flag = False
+                while True:
+                    if len(message) == 1:
+                        file_name = ""
+                    elif len(message) == 2:
+                        file_name = message[1]
+                    else:
+                        writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        writer.write('\n\rUse: read_file <filename>'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        break
 
-        elif message[0] == 'read':
-            read_flag = False
-            while True:
-                if len(message) == 1:
-                    file_name = ""
-                elif len(message) == 2:
-                    file_name = message[1]
-                else:
-                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    writer.write('\n\rUse: read <filename>'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    break
+                    if username_check(name, signedin):
+                        if pre_file_name == file_name:
+                            read_flag = True
 
-                if username_check(name, signedin):
-                    if pre_file_name == file_name:
-                        read_flag = True
+                        writer.write(client.read_file(file_name, read_flag).encode(encoding='UTF-8'))
+                        await writer.drain()
+                        pre_file_name = str(file_name)
+                        break
+            else:
+                writer.write(f'\n\rError: You should log in first'.encode())
+                await writer.drain()
 
-                    writer.write(client.read_file(file_name, read_flag).encode(encoding='UTF-8'))
-                    await writer.drain()
-                    pre_file_name = str(file_name)
-                    break
+        elif message[0] == 'delete':
+            if name in signedin:
+                while True:
+                    if len(message) == 3:
+                        user_name = message[1]
+                        input_password = message[2]
+                    else:
+                        writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        writer.write('\n\rUse: delete <username> <admin_password>'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        break
 
-        elif message[0] == 'del':
-            while True:
-                if len(message) == 3:
-                    user_name = message[1]
-                    input_password = message[2]
-                else:
-                    writer.write('\n\rError: Wrong command format'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    writer.write('\n\rUse: del <username> <admin_password>'.encode(encoding='UTF-8'))
-                    await writer.drain()
-                    break
-
-                if username_check(name, signedin):
-                    writer.write(client.delete(name, user_name, input_password, signedin).encode(encoding='UTF-8'))
-                    await writer.drain()
-                    break
+                    if username_check(name, signedin):
+                        if privilege == 'admin':
+                            
+                            # port_num = signedin_port[i]
+                            
+                            writer.write(client.delete(name, user_name, input_password, signedin).encode(encoding='UTF-8'))
+                            await writer.drain()
+                            break
+                        else:
+                            writer.write('\n\rThe request is denied. You are not admin.'.encode(encoding='UTF-8'))
+                            await writer.drain()
+                            break
+            else:
+                writer.write(f'\n\rError: You should log in first'.encode())
+                await writer.drain()
 
         elif message[0] == 'quit':
-            with open(f'{path}/root/Server/signed-info.json', 'r') as file:
-                signedin = json.load(file)
+            if name in signedin:
+                with open(f'{path}/root/Server/signed-info.json', 'r') as file:
+                    signedin = json.load(file)
 
-            signedin.remove(name)
+                signedin.remove(name)
 
-            with open(f'{path}/root/Server/signed-info.json', 'w') as file:
-                json.dump(signedin, file)
+                with open(f'{path}/root/Server/signed-info.json', 'w') as file:
+                    json.dump(signedin, file)
 
-            close_msg = f'{addr!r} wants to close the connection.'
-            print(close_msg)
-            break
+                close_msg = f'{addr!r} wants to close the connection.'
+                print(close_msg)
+                break
+            else:
+                writer.write(f'\n\rError: You should log in first'.encode())
+                await writer.drain()
         else:
             writer.write('\n\rThe implemented command is wrong.Please type "commands"'.encode(encoding='UTF-8'))
             await writer.drain()
@@ -291,7 +343,7 @@ async def main():
     This function sets the connection to given IP address and port and calls call_back function.
     Make the server ready to listen.
     """
-    server = await asyncio.start_server(send_back, '127.0.0.1', 8080)
+    server = await asyncio.start_server(send_back, '127.0.0.1', 8000)
     addr = server.sockets[0].getsockname()
     print(f'Serving on {addr}')
     async with server:

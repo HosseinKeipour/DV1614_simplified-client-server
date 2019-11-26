@@ -261,11 +261,13 @@ class Admin(User):
 
     def delete(self, name, user_name, input_password, signedin):
         """Delete the user conforming with <username> from the server"""
+        with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
+            self.registered = json.load(file)
+
+        index = self.registered['client_name'].index(name)
+        admin_password = self.registered['client_password'][index]
 
         if user_name in self.registered['client_name']:
-            index = self.registered['client_name'].index(name)
-            admin_password = self.registered['client_password'][index]
-
             if admin_password == input_password:
                 user_name_index = self.registered['client_name'].index(user_name)
                 user_name_privilege = self.registered['client_privilege'][user_name_index]
@@ -296,15 +298,16 @@ class Admin(User):
                 else:
                     msg = f'\n\rThe {user_name} successfuly has been deleted.\n\r'
                     return msg
-                               
+                            
                 with open(f'{init_cwd}/root/Server/client-info.json', 'w') as file:
                     json.dump(self.registered, file)
             else:
-                msg = f'\n\rThe password is wrong.\n\r'
+                msg = f'\n\rThe request is denied.The password is wrong.\n\r'
                 return msg
         else:
-            msg = f'\n\rThe username does not exist.\n\r'
+            msg = f'\n\rThe request is denied.The username does not exist.\n\r'
             return msg
+
 
 class UserClassTestingStepOne(unittest.TestCase):
     """Handles the first part of tests"""
