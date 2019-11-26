@@ -77,15 +77,6 @@ The tests implemented with the doctest or unittest module are to be clearly docu
 Report
 A report are to be written outlining how work on this assignment was conducted. The report should clearly specify the work done before coding started, how the work has been divided between members of the group. It should also describe different problems that emerged while working and how these were handled. 
 
-Group Requirements
-You are free to group yourself together with up to two other students, resulting in groups of 1 to 3 students. Once a group is decided, you must:
-
-Create a private github repository for this assignment,  shared between the members in the group, as well as with cnl@bth.se, ajx@bth.se, and sivadasari.bth@gmail.com.
-Free private repositories can be created with a github account created through your school email, see https://education.github.com/students (Links to an external site.)
-Send one email per group to Carina Nilsson containing a chosen name for the group, and each group members':
-Name
-Social security number
-The last date to apply to work with this assignment in a group is October 13, 2019. After this date, all students that are not in a group will be placed in a single member group. Note that single-member groups should also have a private github repository for the assignment. This repository must be shared with the teachers.
 
 You are expected to share the workload evenly in the group. Submission history, with a focus on content and quality, not number of lines, will be part of the individual assessment. 
 
