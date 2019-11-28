@@ -9,15 +9,18 @@ import socket
 import signal
 import string
 
+
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
 signedin = []
-signedin_port = []
-addr_port = []
+client_addr_info = []
+user_name_index = int
 created_folder = {}
 path = str(os.getcwd())
 with open(f'{path}/root/Server/signed-info.json', 'w') as file:
     json.dump(signedin, file)
+with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
+    json.dump(client_addr_info, file)
 async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     """
     Gives the sent message from client in a loop, if the message is quit the loop will be stopped.
@@ -116,11 +119,12 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         with open(f'{path}/root/Server/signed-info.json', 'w') as file:
                             json.dump(signedin, file)
 
-                        # with open(f'{path}/root/Server/signedin_port.json', 'r') as file:
-                        #     signedin = json.load(file)
-                        # signedin_port.append(addr[1])
-                        # with open(f'{path}/root/Server/signedin_port.json', 'w') as file:
-                        #     json.dump(signedin, file)
+                        with open(f'{path}/root/Server/client_addr_info.json', 'r') as file:
+                            client_addr_info = json.load(file)
+                        client_addr_info.append(tuple(addr))
+                        with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
+                            json.dump(client_addr_info, file)
+
                     else:
                         writer.write('\n\rError:The password is incorrect. Please try again.'.encode(encoding='UTF-8'))
                         await writer.drain()
@@ -137,28 +141,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     writer.write('\n\rError: This username is not exist or already logged in.'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
-
-        # elif message[0] == 'commands':
-        #     if name in signedin:
-        #         help_message = """
-        #         create_folder <name>---------------------------create a new folder
-        #         change_folder <name>---------------------------change folder
-        #         list-------------------------------------------list directory contents
-        #         read_file <file_name>--------------------------read data from the file
-        #         write_file <file_name> <input>-----------------write the data to the end of the file
-        #         login <username> <password>--------------------log in the user
-        #         register <username> <password> <privileges>----register a new user
-        #         delete <del_username> <admin_password>---------delete a user from the server
-        #         quit------------log out the user, close the connection, close the application
-        #         commands--------------------------------------information about all available commands
-        #         commands issued-------------------------------all commands issued are issued
-        #         commands clear--------------------------------all commands issued are cleared
-        #         """
-        #         writer.write(f'\n\r{help_message}'.encode())
-        #         await writer.drain()
-        #     else:
-        #         writer.write(f'\n\rError: You should log in first'.encode())
-        #         await writer.drain()
 
         elif message[0] == 'create_folder':
             if name in signedin:
@@ -300,10 +282,26 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
                     if username_check(name, signedin):
                         if privilege == 'admin':
+                            with open(f'{path}/root/Server/signed-info.json', 'r') as file:
+                                signedin = json.load(file)
+                            if user_name in signedin:
+                                user_name_index = signedin.index(user_name)
+                                with open(f'{path}/root/Server/client_addr_info.json', 'r') as file:
+                                    client_addr_info = json.load(file)
+
+                                # y = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                                # y.bind((client_addr_info[user_name_index][0], client_addr_info[user_name_index][1]))
+                                # y.shutdown()
+                                # y.close()
+                                # addr.shutdown(int(client_addr_info[user_name_index][1]))
                             
-                            # port_num = signedin_port[i]
-                            
-                            writer.write(client.delete(name, user_name, input_password, signedin).encode(encoding='UTF-8'))
+                            delete_msg = client.delete(name, user_name, input_password, signedin)
+                            if delete_msg == f'\n\rThe {user_name} successfuly has been deleted.\n\r':
+                                client_addr_info.remove(user_name_index)
+                                with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
+                                    json.dump(client_addr_info, file)   
+
+                            writer.write(str(delete_msg).encode(encoding='UTF-8'))
                             await writer.drain()
                             break
                         else:
@@ -343,7 +341,7 @@ async def main():
     This function sets the connection to given IP address and port and calls call_back function.
     Make the server ready to listen.
     """
-    server = await asyncio.start_server(send_back, '127.0.0.1', 8000)
+    server = await asyncio.start_server(send_back, '127.0.0.1', 8080)
     addr = server.sockets[0].getsockname()
     print(f'Serving on {addr}')
     async with server:

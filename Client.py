@@ -56,14 +56,14 @@ async def tcp_echo_client():
     call the get_message function, if the returned message is not exit, the loop will be repeated,
     else the connection will be closed
     """
-    reader, writer = await asyncio.open_connection('127.0.0.1', 8000)
+    reader, writer = await asyncio.open_connection('127.0.0.1', 8080)
 
     while True:
         data = await reader.read(1000)
         print(f"{data.decode()}")
 
         message = await get_message(reader, writer)
-        if message == 'exit':
+        if message == 'quit':
             break
 
     print('Close the connection')

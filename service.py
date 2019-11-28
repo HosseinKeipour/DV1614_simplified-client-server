@@ -290,15 +290,18 @@ class Admin(User):
                     json.dump(signedin, file)
 
                 del_path = os.path.join(init_cwd, f"root/{user_name_privilege}/{user_name}")
+                # # shutil.rmtree(del_path, ignore_errors=True, onerror=None)
+
                 try:
-                    shutil.rmtree(del_path)
+                    shutil.rmtree(del_path, ignore_errors=True, onerror=None)
                 except:
                     msg = f'\n\rError : Error while deleting.\n\r'
-                    return msg
+                    return msg, user_name_index
                 else:
                     msg = f'\n\rThe {user_name} successfuly has been deleted.\n\r'
-                    return msg
-                            
+                    return msg, user_name_index
+                # msg = f'\n\rThe {user_name} successfuly has been deleted.\n\r'
+                # return msg           
                 with open(f'{init_cwd}/root/Server/client-info.json', 'w') as file:
                     json.dump(self.registered, file)
             else:
