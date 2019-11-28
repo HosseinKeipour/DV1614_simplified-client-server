@@ -13,15 +13,16 @@ import string
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
 signedin = []
-client_addr_info = []
+test = []
 user_name_index = int
 created_folder = {}
 path = str(os.getcwd())
 with open(f'{path}/root/Server/signed-info.json', 'w') as file:
     json.dump(signedin, file)
-with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
-    json.dump(client_addr_info, file)
+# with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
+#     json.dump(client_addr_info, file)
 async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    client_addr_info = []
     """
     Gives the sent message from client in a loop, if the message is quit the loop will be stopped.
     The received message will be splited and message[0] will be compare with given known commands
@@ -119,16 +120,28 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         with open(f'{path}/root/Server/signed-info.json', 'w') as file:
                             json.dump(signedin, file)
 
-                        with open(f'{path}/root/Server/client_addr_info.json', 'r') as file:
-                            client_addr_info = json.load(file)
-                        client_addr_info.append(tuple(addr))
-                        with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
-                            json.dump(client_addr_info, file)
+                        # with open(f'{path}/root/Server/client_addr_info.json', 'r') as file:
+                            # client_addr_info = json.load(file)
+                            
+                        # test = []
+                        # client_addr_info.append(addr[0], addr[1], writer])
+                        client_addr_info.append(addr[0])
+                        client_addr_info.append(addr[1])
+                        client_addr_info.append(writer)
+                        test.append(client_addr_info)
+                        # client_addr_info.append(addr[1])
+                        # test.append(writer)
+                        # client_addr_info.append(test)
+                        print(test)
+                        
+                        # with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
+                        #     json.dump(client_addr_info, file)
 
                     else:
                         writer.write('\n\rError:The password is incorrect. Please try again.'.encode(encoding='UTF-8'))
                         await writer.drain()
                         break
+
                     index = registered['client_name'].index(name)
                     privilege = registered['client_privilege'][index]
 
@@ -294,6 +307,9 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                                 # y.shutdown()
                                 # y.close()
                                 # addr.shutdown(int(client_addr_info[user_name_index][1]))
+                                client_addr_info[user_name_index][-1].close()
+                                await client_addr_info[user_name_index][-1].wait_closed()
+
                             
                             delete_msg = client.delete(name, user_name, input_password, signedin)
                             if delete_msg == f'\n\rThe {user_name} successfuly has been deleted.\n\r':
