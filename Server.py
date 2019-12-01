@@ -50,7 +50,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         data = await reader.read(1000)
         msg = data.decode().strip()
         message = msg.split()
-        print(f"Server Side Receive:{message}")
+       
         if message[0] == 'register':
             reg_Flag = False
             while True:
@@ -120,22 +120,12 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         with open(f'{path}/root/Server/signed-info.json', 'w') as file:
                             json.dump(signedin, file)
 
-                        # with open(f'{path}/root/Server/client_addr_info.json', 'r') as file:
-                            # client_addr_info = json.load(file)
-                            
-                        # test = []
-                        # client_addr_info.append(addr[0], addr[1], writer])
                         client_addr_info.append(addr[0])
                         client_addr_info.append(addr[1])
                         client_addr_info.append(writer)
                         test.append(client_addr_info)
-                        # client_addr_info.append(addr[1])
-                        # test.append(writer)
-                        # client_addr_info.append(test)
-                        print(test)
-                        
-                        # with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
-                        #     json.dump(client_addr_info, file)
+                        # print(test)
+                    
 
                     else:
                         writer.write('\n\rError:The password is incorrect. Please try again.'.encode(encoding='UTF-8'))
@@ -296,34 +286,19 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     if username_check(name, signedin):
                         if privilege == 'admin':
                             with open(f'{path}/root/Server/signed-info.json', 'r') as file:
-                                signedin = json.load(file)
+                                signedin = json.load(file)                        
                             if user_name in signedin:
                                 user_name_index = signedin.index(user_name)
-                                with open(f'{path}/root/Server/client_addr_info.json', 'r') as file:
-                                    client_addr_info = json.load(file)
-
-                                # y = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                                # y.bind((client_addr_info[user_name_index][0], client_addr_info[user_name_index][1]))
-                                # y.shutdown()
-                                # y.close()
-                                # addr.shutdown(int(client_addr_info[user_name_index][1]))
-                                client_addr_info[user_name_index][-1].close()
-                                await client_addr_info[user_name_index][-1].wait_closed()
-
-                            
+                                test[user_name_index][2].close()
                             delete_msg = client.delete(name, user_name, input_password, signedin)
-                            if delete_msg == f'\n\rThe {user_name} successfuly has been deleted.\n\r':
-                                client_addr_info.remove(user_name_index)
-                                with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
-                                    json.dump(client_addr_info, file)   
-
                             writer.write(str(delete_msg).encode(encoding='UTF-8'))
                             await writer.drain()
-                            break
+                            break                      
                         else:
                             writer.write('\n\rThe request is denied. You are not admin.'.encode(encoding='UTF-8'))
                             await writer.drain()
-                            break
+                        break
+
             else:
                 writer.write(f'\n\rError: You should log in first'.encode())
                 await writer.drain()
@@ -345,8 +320,9 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                 writer.write(f'\n\rError: You should log in first'.encode())
                 await writer.drain()
         else:
-            writer.write('\n\rThe implemented command is wrong.Please type "commands"'.encode(encoding='UTF-8'))
-            await writer.drain()
+                writer.write('\n\rThe implemented command is wrong.Please type "commands"'.encode(encoding='UTF-8'))
+                await writer.drain()
+
 
         writer.write('\n\r>>'.encode(encoding='UTF-8'))
         await writer.drain()
