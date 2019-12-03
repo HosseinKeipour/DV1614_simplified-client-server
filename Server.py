@@ -9,7 +9,6 @@ import socket
 import signal
 import string
 
-
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
 signedin = []
