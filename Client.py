@@ -45,16 +45,19 @@ async def get_message(reader, writer):
         elif len(message) == 2:
             if message[1] == "issued":
                 print(commands_issued)
+                return()
             elif message[1] == "clear":
-                commands_issued.clear()    
+                commands_issued.clear()
+                return() 
             else:
                 print("The implemented command is wrong")
-            return()  
+                return()  
         else:
             print("The implemented command is wrong")
-        return()
+            return()
     else:
         writer.write(user_input.encode(encoding='UTF-8'))
+        await writer.drain()
         return user_input
 
 async def tcp_echo_client():

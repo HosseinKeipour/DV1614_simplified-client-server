@@ -349,7 +349,7 @@ class UserClassTestingStepOne(unittest.TestCase):
         self.fd = os.path.join(init_cwd, self.login_directory)
         path = os.path.join(self.fd, name)
         os.makedirs(path)
-        os.makedirs(f'{self.login_directory}/folder1')
+        os.makedirs(f'{self.fd}/folder1')
         client = Admin(name, password, privilege)
 
         assert client.create_folder("user1", "admin", "folder1") == "Error: Folder with this name exist.\n\r"
@@ -371,9 +371,8 @@ class UserClassTestingStepOne(unittest.TestCase):
 
         client = Admin(name, password, privilege)
         client.back_folder(name, privilege)
-        test1 =client.back_folder(name, privilege)
 
-        assert test1 == f'{init_cwd}\\root'
+        assert client.back_folder(name, privilege) == f'{init_cwd}\\root'
         
         result= client.create_folder(name, privilege, "folder1")
         assert result == "Error: Your are not allowed to create folder here.\n\r"
@@ -405,7 +404,6 @@ class UserClassTestingStepOne(unittest.TestCase):
                          expected_result,
                          f'Expected the answer to be : {expected_result}')
         
-        assert client.change_folder(name, 'user', folder) == "Error: Your are not allowed to enter this folder.\n\r"
 
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
@@ -484,7 +482,6 @@ class UserClassTestingStepOne(unittest.TestCase):
         os.makedirs(path)
         os.chdir(self.fd)
         
-
         client = Admin(name, password, privilege)
         client.write_file(name, file_name, user_input)
 

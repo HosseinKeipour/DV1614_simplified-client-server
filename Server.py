@@ -163,6 +163,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         break
                     if username_check(name, signedin):
                         writer.write(client.create_folder(name, privilege, folder).encode(encoding='UTF-8'))
+                        await writer.drain()
                         break
                     else:
                         writer.write('\n\rError: You should sign in first'.encode(encoding='UTF-8'))
