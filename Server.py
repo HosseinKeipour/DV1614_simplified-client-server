@@ -23,8 +23,7 @@ created_folder = {}
 path = str(os.getcwd())
 with open(f'{path}/root/Server/signed-info.json', 'w') as file:
     json.dump(signedin, file)
-# with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
-#     json.dump(client_addr_info, file)
+
 async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     """
     The function gives the sent message from client in a loop, if the message is quit the loop will be stopped.
@@ -55,7 +54,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         data = await reader.read(1000)
         msg = data.decode().strip()
         message = msg.split()
-       
+    
         if message[0] == 'register':
             reg_Flag = False
             while True:
@@ -227,7 +226,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         await writer.drain()
                         break
             else:
-                writer.write(f'\n\rError: You should log in first'.encode())
+                writer.write(f'\n\rError: You should log in first'.encode(encoding='UTF-8'))
                 await writer.drain()   
 
         elif message[0] == 'write_file':
@@ -325,9 +324,14 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             else:
                 writer.write(f'\n\rError: You should log in first'.encode())
                 await writer.drain()
+
+        elif message[0] == 'commands':
+            pass
+
         else:
-                writer.write('\n\rThe implemented command is wrong.Please type "commands"'.encode(encoding='UTF-8'))
-                await writer.drain()
+            writer.write('\n\rThe implemented command is wrong.Please type "commands"'.encode(encoding='UTF-8'))
+            await writer.drain()
+    
 
 
         writer.write('\n\r>>'.encode(encoding='UTF-8'))

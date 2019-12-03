@@ -12,6 +12,7 @@ the loop will be stopped and the connection will be closed.
 """
 import asyncio
 commands_issued = list()
+valid_commands = ['register', 'login', 'create_folder', 'change_folder', 'list', 'write_file', 'read_file', 'delete', 'quit', 'commands']
 async def get_message(reader, writer):
     """
     The function gets input from terminal and send it to server, also return it to tcp_echo_client
@@ -20,10 +21,16 @@ async def get_message(reader, writer):
     issued by each user. If the message was quit, the loop will be stopped and the connection will be closed.
     """
     user_input = input("user input:") 
-
     commands_issued.append(user_input)
     msg = user_input.strip()
     message = msg.split()
+
+    # assert-statement for valid commands
+    try:
+        assert message[0] in valid_commands, "The implemented command is wrong"
+    except AssertionError as error:
+        print(error)
+
     if message[0] == 'commands':
         if len(message) == 1:
             help_message = """
@@ -41,24 +48,18 @@ async def get_message(reader, writer):
             commands clear--------------------------------all commands issued are cleared
             """
             print(f'\n\r{help_message}')
-            return()
+            # return()
         elif len(message) == 2:
             if message[1] == "issued":
                 print(commands_issued)
-                return()
+                # return()
             elif message[1] == "clear":
                 commands_issued.clear()
-                return() 
             else:
                 print("The implemented command is wrong")
-                return()  
         else:
             print("The implemented command is wrong")
-            return()
-    else:
-        writer.write(user_input.encode(encoding='UTF-8'))
-        await writer.drain()
-        return user_input
+    return user_input
 
 async def tcp_echo_client():
     """
@@ -73,6 +74,10 @@ async def tcp_echo_client():
         print(f"{data.decode()}")
 
         message = await get_message(reader, writer)
+
+        writer.write(message.encode(encoding='UTF-8'))
+        await writer.drain()
+
         if message == 'quit':
             break
 

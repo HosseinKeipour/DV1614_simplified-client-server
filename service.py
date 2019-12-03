@@ -580,7 +580,6 @@ class UserClassTestingStepOne(unittest.TestCase):
         name = "user1"
         password = "pass1"
         privilege = "admin"
-        # folder = "testfolder1"
         file_name = "testfile1"
         read_flag = False           #'False' means it is first time to read a file and 'True' means it is second or more times
         self.login_directory = f"root/{privilege}/{name}"
