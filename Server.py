@@ -1,18 +1,19 @@
 """
-The module works as a Server in a client-server application. The server describes a model wherein receives
-and handles requests of services done by another program (the client).
+The module works as a Server in a client-server application. The server describes a model wherein
+receives and handles requests of services done by another program (the client).
 The server program awaits requests done by the client program and begins working on a request
 as soon as it is received.
 """
-import asyncio
-import random
-from service import User
-from service import Admin
 import os
 import json
 import socket
 import signal
 import string
+import asyncio
+import random
+from service import User
+from service import Admin
+
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 registered = {'client_name': [], 'client_password': [], 'client_privilege': []}
@@ -26,12 +27,12 @@ with open(f'{path}/root/Server/signed-info.json', 'w') as file:
 
 async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     """
-    The function gives the sent message from client in a loop, if the message is quit the loop will be stopped.
-    The received message will be splited and message[0] will be compare with given known commands
-    and in each part it will be made a user/admin instance and the related function will be called
-    by this instance and get the answer from service module and sent it to Client.py.
-    The function includes 7 service commands including commands: register, login, create_folder, change_folder,
-    list, write_file, read_file, delete, quit.
+    The function gives the sent message from client in a loop, if the message is quit the
+    loop will be stopped. The received message will be splited and message[0] will be compare
+    with given known commands and in each part it will be made a user/admin instance and the
+    related function will be called by this instance and get the answer from service module
+    and sent it to Client.py.The function includes 7 service commands including commands:
+    register, login, create_folder, change_folder, list, write_file, read_file, delete, quit.
     """
     client_addr_info = []
     global path
@@ -54,7 +55,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         data = await reader.read(1000)
         msg = data.decode().strip()
         message = msg.split()
-    
+
         if message[0] == 'register':
             reg_Flag = False
             while True:
@@ -77,7 +78,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     writer.write('\n\rUse: register <username> <password> <privilege>'.encode(encoding='UTF-8'))
                     await writer.drain()
                     break
-                if username_check(name, registered['client_name']) == False and password != "" and (privilege == "user" or privilege == "admin"):
+                if (name not in registered['client_name']) and password != "" and (privilege == "user" or privilege == "admin"):
                     registered['client_name'].append(name)
                     registered['client_password'].append(password)
                     registered['client_privilege'].append(privilege)
@@ -93,14 +94,16 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         json.dump(registered, file)
                     break
                 else:
-                    if username_check(name, registered['client_name']) == True:
-                        writer.write('\n\rError:The username has been already selected.'.encode(encoding='UTF-8'))
-                        await writer.drain()
-                        break
-                    else:
+                    try:
+                        assert name not in registered['client_name'] == True
                         writer.write('\n\rError: The selected username, password or privilege is not correct.'.encode(encoding='UTF-8'))
                         await writer.drain()
                         break
+                    except AssertionError:
+                        writer.write('\n\rError:The username has been already selected.'.encode(encoding='UTF-8'))
+                        await writer.drain()
+                        break
+
 
         elif message[0] == 'login':
             while True:
@@ -114,10 +117,11 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     await writer.drain()
                     break
 
-                if (username_check(name, registered['client_name']) and name not in signedin):
+                if ((name in registered['client_name']) and name not in signedin):
                     index = registered['client_name'].index(name)
 
-                    if password == registered['client_password'][index]:
+                    try:
+                        assert password == registered['client_password'][index]
                         with open(f'{path}/root/Server/signed-info.json', 'r') as file:
                             signedin = json.load(file)
                         signedin.append(name)
@@ -128,10 +132,8 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         client_addr_info.append(addr[1])
                         client_addr_info.append(writer)
                         test.append(client_addr_info)
-                        # print(test)
-                    
 
-                    else:
+                    except AssertionError:
                         writer.write('\n\rError:The password is incorrect. Please try again.'.encode(encoding='UTF-8'))
                         await writer.drain()
                         break
@@ -160,7 +162,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         writer.write('\n\rUse: create_folder <folder_name>'.encode(encoding='UTF-8'))
                         await writer.drain()
                         break
-                    if username_check(name, signedin):
+                    if name in signedin:
                         writer.write(client.create_folder(name, privilege, folder).encode(encoding='UTF-8'))
                         await writer.drain()
                         break
@@ -187,7 +189,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         break
 
                     if folder == '..':
-                        if username_check(name, signedin):
+                        if name in signedin:
                             writer.write(client.back_folder(name, privilege).encode(encoding='UTF-8'))
                             await writer.drain()
                             break
@@ -202,7 +204,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
                     if cd_flag == False:
                         writer.write(client.change_folder(name, privilege, folder).encode(encoding='UTF-8'))
-                        await writer.drain()       
+                        await writer.drain()
                         break
                     break
             else:
@@ -213,9 +215,9 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
             if name in signedin:
                 while True:
                     if len(message) == 1:
-                        if username_check(name, signedin):
-
-                            writer.write(client.print_list(name).encode(encoding='UTF-8'))
+                        if name in signedin:
+                            msg_list = client.print_list(name)
+                            writer.write(msg_list.encode(encoding='UTF-8'))
                             await writer.drain()
 
                             break
@@ -227,7 +229,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         break
             else:
                 writer.write(f'\n\rError: You should log in first'.encode(encoding='UTF-8'))
-                await writer.drain()   
+                await writer.drain()
 
         elif message[0] == 'write_file':
             if name in signedin:
@@ -241,7 +243,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         writer.write('\n\rUse: write_file <filename> <input>'.encode(encoding='UTF-8'))
                         await writer.drain()
                         break
-                    if username_check(name, signedin):
+                    if name in signedin:
                         client.write_file(name, file_name, user_input)
                         break
             else:
@@ -263,7 +265,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         await writer.drain()
                         break
 
-                    if username_check(name, signedin):
+                    if name in signedin:
                         if pre_file_name == file_name:
                             read_flag = True
 
@@ -288,17 +290,17 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         await writer.drain()
                         break
 
-                    if username_check(name, signedin):
+                    if name in signedin:
                         if privilege == 'admin':
                             with open(f'{path}/root/Server/signed-info.json', 'r') as file:
-                                signedin = json.load(file)                        
+                                signedin = json.load(file)
                             if user_name in signedin:
                                 user_name_index = signedin.index(user_name)
                                 test[user_name_index][2].close()
                             delete_msg = client.delete(name, user_name, input_password, signedin)
                             writer.write(str(delete_msg).encode(encoding='UTF-8'))
                             await writer.drain()
-                            break                      
+                            break
                         else:
                             writer.write('\n\rThe request is denied. You are not admin.'.encode(encoding='UTF-8'))
                             await writer.drain()
@@ -331,8 +333,6 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         else:
             writer.write('\n\rThe implemented command is wrong.Please type "commands"'.encode(encoding='UTF-8'))
             await writer.drain()
-    
-
 
         writer.write('\n\r>>'.encode(encoding='UTF-8'))
         await writer.drain()
@@ -340,8 +340,8 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
 async def main():
     """
-    This function was set for programming the socket which sets the connection to given IP address and port and
-    calls call_back function. It makes the server ready to listen.
+    This function was set for programming the socket which sets the connection to given
+    IP address and port and calls call_back function. It makes the server ready to listen.
     """
     server = await asyncio.start_server(send_back, '127.0.0.1', 8080)
     addr = server.sockets[0].getsockname()
@@ -349,13 +349,13 @@ async def main():
     async with server:
         await server.serve_forever()
 
-def username_check(name1, name2):
-    """
-    This function check the name which exist in a list calling name2.
-    """   
-    for i in range(0, len(name2)):
-        if name1 == name2[i]:
-            return True
-    return False
+# def username_check(name1, name2):
+#     """
+#     This function check the name which exist in a list calling name2.
+#     """
+#     for i in range(0, len(name2)):
+#         if name1 == name2[i]:
+#             return True
+#     return False
 
 asyncio.run(main())

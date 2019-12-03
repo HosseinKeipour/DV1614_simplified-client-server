@@ -1,9 +1,9 @@
 """
-The module called service includes heavily simplified UNIX-based commands and represent the services of the server.
-This file contains Three classes named: User which handle the request from server sent by user privilege from Client,
-Admin handle the request from server sent by admin privilege from Client, UserClassTestingStepOne which tests
-program related to service functions.
-Admin class inherit from User class.
+The module called service includes heavily simplified UNIX-based commands and represent the
+services of the server.This file contains Three classes named: 1-User which handle the request
+from server sent by user privilege from Client, 2-Admin handle the request from server sent by
+admin privilege from Client, 3-UserClassTestingStepOne which tests program related to service
+functions. Admin class inherit from User class.
 """
 import os
 import json
@@ -276,7 +276,7 @@ class Admin(User):
                 user_name_privilege = self.registered['client_privilege'][user_name_index]
 
                 with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
-                    self.registered = json.load(file) 
+                    self.registered = json.load(file)
                 del self.registered['client_name'][user_name_index]
                 del self.registered['client_password'][user_name_index]
                 del self.registered['client_privilege'][user_name_index]
@@ -302,7 +302,7 @@ class Admin(User):
                 else:
                     msg = f'\n\rThe {user_name} successfuly has been deleted.\n\r'
                     return msg
-          
+
                 with open(f'{init_cwd}/root/Server/client-info.json', 'w') as file:
                     json.dump(self.registered, file)
             else:
@@ -314,10 +314,14 @@ class Admin(User):
 
 
 class UserClassTestingStepOne(unittest.TestCase):
-    """Handles the first part of tests"""
+    """Handles the service functions tests"""
 
     def test_create_folder(self):
-        """This is a test for create_folder functions"""
+        """
+        An Admin instance will be created with a name, password and privilege also a folder will be made in
+        admin directory and named as Admin name.
+        create_folder called, to make sure if created folder made in the correct path and with the expected name.
+        """
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -341,7 +345,12 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)
 
     def test_create_folder_for_existing_folder(self):
-        """This is a test for create_folder functions for Existing folder"""
+        """
+        An Admin instance will be created with a name, password and privilege also a folder will be made in
+        admin directory and named as Admin name.
+        create_folder called, to make sure if the create_folder function work in correct path and return proper
+        message for existing folder.
+        """
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -360,7 +369,13 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)
 
     def test_create_folder_and_back_folder_jointly(self):
-        """This is a test for create_folder functions for permision and back_folder function"""
+        """
+        An Admin instance will be created with a name, password and privilege also a folder will be made in
+        admin directory and named as Admin name.
+        create_folder called, to make sure if  the simultaneously User can implement back_folder command and
+        create folder  in the new path?  These two functions are tested jointly because we wanted to know,
+        are there worked jointly
+        """
         name = "user1"
         password = "pass1"
         privilege = "user"
@@ -373,8 +388,8 @@ class UserClassTestingStepOne(unittest.TestCase):
         client.back_folder(name, privilege)
 
         assert client.back_folder(name, privilege) == f'{init_cwd}\\root'
-        
-        result= client.create_folder(name, privilege, "folder1")
+
+        result = client.create_folder(name, privilege, "folder1")
         assert result == "Error: Your are not allowed to create folder here.\n\r"
 
         assert client.back_folder(name, privilege) == "Error:You are in root directory\n\r"
@@ -385,7 +400,11 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)
 
     def test_change_folder(self):
-        """This is a test for change_folder functions"""
+        """
+        An Admin instance will be created with a name, password and privilege also a folder will be made in
+        admin directory and named as Admin name.
+        create_folder called, to make sure if the change_folder function move the path to expected one
+        """
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -411,7 +430,12 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)
 
     def test_back_folder(self):
-        """This is a test for back_folder functions"""
+        """
+        An Admin instance will be created with a name, password and privilege also a folder will be made in
+        admin directory and named as Admin name.
+        create_folder called, to make sure if the back_folder function walk one step back from the current
+        path to expected one
+        """
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -426,8 +450,8 @@ class UserClassTestingStepOne(unittest.TestCase):
         result = client.back_folder(name, privilege)
 
         self.assertEqual(result,
-                        expected_result,
-                        f'Expected the answer to be : {expected_result}')
+                         expected_result,
+                         f'Expected the answer to be : {expected_result}')
 
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
@@ -435,7 +459,12 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)
 
     def test_print_list(self):
-        """This is a test for print_list functions"""
+        """
+        An Admin instance will be created with a name, password and privilege also a folder will be made in
+        admin directory and named as Admin name.
+        create_folder called, to make sure if the List function report correctly from the current path to
+        expected one
+        """
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -460,8 +489,8 @@ class UserClassTestingStepOne(unittest.TestCase):
 
         for expected_result in expected_results:
             self.assertIn(expected_result,
-                            result,
-                            f'Expected the answer contains the following files : {expected_result}')
+                          result,
+                          f'Expected the answer contains the following files : {expected_result}')
 
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
@@ -469,7 +498,11 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path)
 
     def test_write_file(self):
-        """This is a test for write_file functions"""
+        """
+        An Admin instance will be created with a name, password and privilege also a folder will be made in
+        admin directory and named as Admin name.
+        create_folder called, to make sure if the write_file function move the path to expected one
+        """
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -492,8 +525,8 @@ class UserClassTestingStepOne(unittest.TestCase):
             result = text_file[:]
 
         self.assertEqual(result,
-                        expected_result,
-                        f'Expected the answer to be : {expected_result}')
+                         expected_result,
+                         f'Expected the answer to be : {expected_result}')
 
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
@@ -502,7 +535,10 @@ class UserClassTestingStepOne(unittest.TestCase):
 
     def test_delete_as_an_admin(self):
         """
-        This is a test for delete functions
+        An Admin instance will be created with a name, password and privilege also a folder will be made in
+        admin directory and named as Admin name.
+        create_folder called, to make sure if the test_delete function is permitted by just an Admin
+        privilege not the user privilege
         """
         name = "user1"
         password = "pass1"
@@ -552,8 +588,8 @@ class UserClassTestingStepOne(unittest.TestCase):
         result = client.delete(name, user_name, input_password, signedin)
       
         self.assertEqual(result,
-            expected_result,
-            f'Expected the answer to be : {expected_result}')
+                         expected_result,
+                         f'Expected the answer to be : {expected_result}')
         
         with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
             registered = json.load(file)
@@ -576,7 +612,12 @@ class UserClassTestingStepOne(unittest.TestCase):
         shutil.rmtree(del_path) 
 
     def test_read_files_first_100_char(self):
-        """This is a test for read_files functions"""
+        """
+        An Admin instance will be created with a name, password and privilege also a folder will be made in
+        admin directory and named as Admin name.
+        create_folder called, to make sure if the read_file function read the file correctly as is expected
+        and print 100 first characters
+        """
         name = "user1"
         password = "pass1"
         privilege = "admin"
@@ -599,8 +640,8 @@ class UserClassTestingStepOne(unittest.TestCase):
         result = client.read_file(file_name, read_flag)
 
         self.assertEqual(result,
-            expected_result,
-            f'Expected the answer to be : {expected_result}')
+                         expected_result,
+                         f'Expected the answer to be : {expected_result}')
 
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
