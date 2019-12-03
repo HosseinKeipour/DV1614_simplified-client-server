@@ -1,4 +1,9 @@
-"""The module containing connection to given IP address and port, basic loop of application"""
+"""
+The module works as a Server in a client-server application. The server describes a model wherein receives
+and handles requests of services done by another program (the client).
+The server program awaits requests done by the client program and begins working on a request
+as soon as it is received.
+"""
 import asyncio
 import random
 from service import User
@@ -21,15 +26,16 @@ with open(f'{path}/root/Server/signed-info.json', 'w') as file:
 # with open(f'{path}/root/Server/client_addr_info.json', 'w') as file:
 #     json.dump(client_addr_info, file)
 async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-    client_addr_info = []
     """
-    Gives the sent message from client in a loop, if the message is quit the loop will be stopped.
+    The function gives the sent message from client in a loop, if the message is quit the loop will be stopped.
     The received message will be splited and message[0] will be compare with given known commands
     and in each part it will be made a user/admin instance and the related function will be called
-    by this instance and get the answer from service module and sent it to Client.py
+    by this instance and get the answer from service module and sent it to Client.py.
+    The function includes 7 service commands including commands: register, login, create_folder, change_folder,
+    list, write_file, read_file, delete, quit.
     """
+    client_addr_info = []
     global path
-    # 'peername' is remote address connected to
     addr = writer.get_extra_info('peername')
     message = f'{addr!r} is connected !!!!'
     print(message)
@@ -329,8 +335,8 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
 
 async def main():
     """
-    This function sets the connection to given IP address and port and calls call_back function.
-    Make the server ready to listen.
+    This function was set for programming the socket which sets the connection to given IP address and port and
+    calls call_back function. It makes the server ready to listen.
     """
     server = await asyncio.start_server(send_back, '127.0.0.1', 8080)
     addr = server.sockets[0].getsockname()
@@ -339,6 +345,9 @@ async def main():
         await server.serve_forever()
 
 def username_check(name1, name2):
+    """
+    This function check the name which exist in a list calling name2.
+    """   
     for i in range(0, len(name2)):
         if name1 == name2[i]:
             return True

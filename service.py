@@ -1,7 +1,9 @@
 """
-This file contains the classes User, Admin, UserClassTestingStepOne which in order
-handling the request from server which is sent by a user, the request from server
-which is sent by a admin and tests chosen for testing service functions
+The module called service includes heavily simplified UNIX-based commands and represent the services of the server.
+This file contains Three classes named: User which handle the request from server sent by user privilege from Client,
+Admin handle the request from server sent by admin privilege from Client, UserClassTestingStepOne which tests
+program related to service functions.
+Admin class inherit from User class.
 """
 import os
 import json
@@ -12,7 +14,7 @@ init_cwd = str(os.getcwd())
 
 class User:
     """
-    A services for all users, a user or an admin.
+    User class which handle the request from server sent by user privilege from Client
 
     Attributes:
     ------------------------
@@ -85,7 +87,7 @@ class User:
 
     def change_folder(self, name, privilege, folder):
         """
-        Move the current working directory for the current user to the specified folder
+        This function change the current working directory for the current user to the specified folder
         residing in the current folder
         """
         path = os.path.join(self.fd, folder)
@@ -126,7 +128,7 @@ class User:
                 return error
 
     def back_folder(self, name, privilege):
-        """walk back the previous folder"""
+        """This function used to walk back to the previous folder"""
         if self.fd != f"{init_cwd}\\root":
             pathX = self.fd
             self.fd = os.path.dirname(pathX)
@@ -138,7 +140,7 @@ class User:
 
     def create_folder(self, name, privilege, folder):
         """
-        Create a new folder with the specified <name> in the current working directory
+        The function creates a new folder with the specified <name> in the current working directory
         for the user issuing the request
         """
         is_path = self.fd.find(f'{init_cwd}\\root/user/{name}')
@@ -155,7 +157,7 @@ class User:
 
     def print_list(self, name):
         """
-        Print all files and folders in the current working directory for the user
+        The function print all files and folders in the current working directory for the user
         issuing the request
         """
         return_msg = ''
@@ -183,7 +185,7 @@ class User:
 
     def read_file(self, file_name, read_flag):
         """
-        Read data from the file <name> in the current working directory for the
+        The function read data from the file <name> in the current working directory for the
         user issuing the request and return the first hundred characters in it
         """
         if file_name == "":
@@ -235,7 +237,7 @@ class User:
 
     def write_file(self, name, file_name, user_input):
         """
-        Write the data in <input> to the end of the file <name> in the current
+        The function try to write the data in <input> to the end of the file <name> in the current
         working directory for the user issuing the request, starting on a new line.
         If no file exists with the given name_file, a new file will be created in the
         current working directory for the user
@@ -253,14 +255,14 @@ class Admin(User):
     so it uses from all of its methods,including its constructor. So the attributes of
     admin class is the same as user class.
 
-    Methods:
+    Method:
     ------------------------
     delete(name, user_name, input_password, signedin):
         Delete the user conforming with <username> from the server
     """
 
     def delete(self, name, user_name, input_password, signedin):
-        """Delete the user conforming with <username> from the server"""
+        """The function delete the user conforming with <username> from the server"""
         os.chdir(init_cwd)
         with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
             self.registered = json.load(file)
