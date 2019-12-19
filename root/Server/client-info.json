@@ -1,1 +1,1 @@
-{"client_name": ["nas"], "client_password": ["nas"]}
+{"client_name": ["nas", "hos"], "client_password": ["nas", "hos"], "client_privilege": ["admin", "admin"]}
