@@ -11,6 +11,7 @@ issued by each user. If the message was quit, the loop will be stopped and the c
 closed.
 """
 import asyncio
+import time
 commands_issued = list()
 valid_commands = ['register', 'login', 'create_folder', 'change_folder', 'list', 'write_file',
                   'read_file', 'delete', 'quit', 'commands']
@@ -73,13 +74,16 @@ async def tcp_echo_client():
     reader, writer = await asyncio.open_connection('127.0.0.1', 8080)
 
     while True:
-        data = await reader.read(1000)
+        data = await reader.read(10000)
         print(f"{data.decode()}")
+        # await asyncio.sleep(0.05)
 
         message = await get_message(reader, writer)
 
         writer.write(message.encode(encoding='UTF-8'))
         await writer.drain()
+        
+        time.sleep(1)
 
         if message == 'quit':
             break

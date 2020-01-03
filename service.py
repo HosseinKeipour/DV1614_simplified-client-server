@@ -148,12 +148,14 @@ class User:
             path = os.path.join(self.fd, folder)
             try:
                 os.makedirs(path)
+                msg = "The folder has been made successfully\n\r"
+                return msg
             except OSError:
-                return "Error: Folder with this name exist.\n\r"
-            else:
-                return "The folder has been made successfully\n\r"
+                msg = "Error: Folder with this name exist.\n\r"
+                return msg
         else:
-            return "Error: Your are not allowed to create folder here.\n\r"
+            msg = "Error: Your are not allowed to create folder here.\n\r"
+            return msg
 
     def print_list(self, name):
         """
@@ -422,7 +424,7 @@ class UserClassTestingStepOne(unittest.TestCase):
         self.assertEqual(result,
                          expected_result,
                          f'Expected the answer to be : {expected_result}')
-        
+
 
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
@@ -511,10 +513,10 @@ class UserClassTestingStepOne(unittest.TestCase):
         self.login_directory = f"root/{privilege}/{name}"
         self.fd = os.path.join(init_cwd, self.login_directory)
         path = os.path.join(self.fd, name)
-        
+
         os.makedirs(path)
         os.chdir(self.fd)
-        
+
         client = Admin(name, password, privilege)
         client.write_file(name, file_name, user_input)
 
@@ -523,7 +525,6 @@ class UserClassTestingStepOne(unittest.TestCase):
         with open(f"{self.fd}/{file_name}.txt") as file:
             text_file = "".join(line.rstrip() for line in file)
             result = text_file[:]
-
         self.assertEqual(result,
                          expected_result,
                          f'Expected the answer to be : {expected_result}')
@@ -531,7 +532,7 @@ class UserClassTestingStepOne(unittest.TestCase):
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
         del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
-        shutil.rmtree(del_path)      
+        shutil.rmtree(del_path)
 
     def test_delete_as_an_admin(self):
         """
@@ -557,7 +558,7 @@ class UserClassTestingStepOne(unittest.TestCase):
         signedin = ["user1", "user2"]
         with open(f'{init_cwd}/root/Server/signed-info.json', 'w') as file:
             json.dump(signedin, file)
-        
+
         with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
             registered = json.load(file)
 
@@ -586,11 +587,11 @@ class UserClassTestingStepOne(unittest.TestCase):
 
         expected_result = f'\n\rThe {user_name} successfuly has been deleted.\n\r'
         result = client.delete(name, user_name, input_password, signedin)
-      
+
         self.assertEqual(result,
                          expected_result,
                          f'Expected the answer to be : {expected_result}')
-        
+
         with open(f'{init_cwd}/root/Server/client-info.json', 'r') as file:
             registered = json.load(file)
         user_name_index = registered['client_name'].index(name)
@@ -609,7 +610,7 @@ class UserClassTestingStepOne(unittest.TestCase):
         chdir_path = os.path.join(init_cwd, f"root/{privilege}")
         os.chdir(chdir_path)
         del_path = os.path.join(init_cwd, f"root/{privilege}/{name}")
-        shutil.rmtree(del_path) 
+        shutil.rmtree(del_path)
 
     def test_read_files_first_100_char(self):
         """

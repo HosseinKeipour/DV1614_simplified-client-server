@@ -44,16 +44,13 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         registered = json.load(file)
     with open(f'{path}/root/Server/signed-info.json', 'r') as file:
         signedin = json.load(file)
-    writer.write('\n\rYou are conected to Pytonista Server'.encode(encoding='UTF-8'))
-    await writer.drain()
     writer.write('\n\rPlease select login or register (login/register)'.encode(encoding='UTF-8'))
-    await writer.drain()
-    writer.write('>>'.encode(encoding='UTF-8'))
     await writer.drain()
 
     while True:
         data = await reader.read(1000)
         msg = data.decode().strip()
+        await asyncio.sleep(0.05)
         message = msg.split()
 
         if message[0] == 'register':
@@ -89,6 +86,9 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                     elif privilege == "admin":
                         admin_path = f"{path}/root/admin/{name}"
                         os.mkdir(admin_path)
+
+                    writer.write('\n\rNow you are successfully registered'.encode(encoding='UTF-8'))
+                    await writer.drain()
 
                     with open(f'{path}/root/Server/client-info.json', 'w') as file:
                         json.dump(registered, file)
@@ -218,6 +218,7 @@ async def send_back(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
                         if name in signedin:
                             msg_list = client.print_list(name)
                             writer.write(msg_list.encode(encoding='UTF-8'))
+
                             await writer.drain()
 
                             break
@@ -348,14 +349,5 @@ async def main():
     print(f'Serving on {addr}')
     async with server:
         await server.serve_forever()
-
-# def username_check(name1, name2):
-#     """
-#     This function check the name which exist in a list calling name2.
-#     """
-#     for i in range(0, len(name2)):
-#         if name1 == name2[i]:
-#             return True
-#     return False
 
 asyncio.run(main())
